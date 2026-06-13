@@ -1,0 +1,58 @@
+{
+  "card_id": "lee2022echo::nnU-Net",
+  "paper_ref": "lee2022echo",
+  "method": "nnU-Net",
+  "version": 1,
+  "fields": [
+    {
+      "name": "learning_rate",
+      "category": "hyperparameter",
+      "value_kind": "numeric",
+      "locator_kind": "literal",
+      "value_spec": { "kind": "numeric", "equals": 0.0001, "atol": 1e-06 },
+      "moat_critical": true,
+      "verification_level": "human",
+      "jumper": {
+        "pq_dockey": "lee2022echo-pdf",
+        "verbatim_text": "We trained with SGD and an initial learning rate of 1e-4 with cosine decay.",
+        "anchor_phrase": "initial learning rate of 1e-4",
+        "page_range": "pages 4-4",
+        "char_span": [26, 30]
+      }
+    },
+    {
+      "name": "intensity_normalization",
+      "category": "normalization",
+      "value_kind": "enum",
+      "locator_kind": "semantic",
+      "value_spec": {
+        "kind": "enum",
+        "equals": "z-score",
+        "aliases": ["zero mean unit variance", "z-normalization", "standardization"]
+      },
+      "moat_critical": true,
+      "verification_level": "self-consistent",
+      "jumper": {
+        "pq_dockey": "lee2022echo-pdf",
+        "verbatim_text": "Each cine volume was standardized to zero mean and unit variance before training.",
+        "anchor_phrase": "standardized to zero mean and unit variance",
+        "page_range": "pages 3-4"
+      }
+    },
+    {
+      "name": "flip",
+      "category": "augmentation",
+      "value_kind": "enum",
+      "locator_kind": "literal",
+      "value_spec": { "kind": "enum", "equals": "horizontal_flip", "aliases": ["lr flip", "left-right flip"] },
+      "phase": "train",
+      "verification_level": "human",
+      "jumper": {
+        "pq_dockey": "lee2022echo-pdf",
+        "verbatim_text": "Training-time augmentation included random horizontal flips with probability 0.5.",
+        "anchor_phrase": "random horizontal flips",
+        "page_range": "pages 4-4"
+      }
+    }
+  ]
+}

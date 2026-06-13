@@ -1,0 +1,62 @@
+{
+  "card_id": "zhou2023thyroid::MedSAM-ft",
+  "paper_ref": "zhou2023thyroid",
+  "method": "MedSAM-ft",
+  "version": 1,
+  "fields": [
+    {
+      "name": "batch_size",
+      "category": "hyperparameter",
+      "value_kind": "numeric",
+      "locator_kind": "literal",
+      "value_spec": { "kind": "numeric", "equals": 8 },
+      "unit": "per_gpu",
+      "compare_in": "per_gpu",
+      "moat_critical": true,
+      "verification_level": "human",
+      "jumper": {
+        "pq_dockey": "zhou2023thyroid-pdf",
+        "verbatim_text": "The encoder was fine-tuned with a batch size of 8 per GPU for 200 epochs.",
+        "anchor_phrase": "batch size of 8 per GPU",
+        "page_range": "pages 5-6",
+        "char_span": [40, 41]
+      }
+    },
+    {
+      "name": "jitter",
+      "category": "augmentation",
+      "value_kind": "enum",
+      "locator_kind": "semantic",
+      "value_spec": {
+        "kind": "enum",
+        "equals": "intensity_jitter",
+        "aliases": ["intensity perturbation", "brightness jitter"]
+      },
+      "phase": "eval",
+      "moat_critical": true,
+      "verification_level": "human",
+      "jumper": {
+        "pq_dockey": "zhou2023thyroid-pdf",
+        "verbatim_text": "Intensity jitter was applied only at evaluation time to probe robustness.",
+        "anchor_phrase": "intensity jitter was applied only at evaluation",
+        "page_range": "pages 6-6"
+      }
+    },
+    {
+      "name": "dropout",
+      "category": "hyperparameter",
+      "value_kind": "numeric",
+      "locator_kind": "literal",
+      "value_spec": { "kind": "numeric" },
+      "not_reported": true,
+      "searched_passages": [
+        {
+          "pq_dockey": "zhou2023thyroid-pdf",
+          "verbatim_text": "Regularization used weight decay of 1e-4; no other regularizers are mentioned.",
+          "anchor_phrase": "weight decay of 1e-4",
+          "page_range": "pages 6-6"
+        }
+      ]
+    }
+  ]
+}
