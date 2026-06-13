@@ -51,7 +51,7 @@ class State(str, Enum):
     HONORED = "honored"
     VIOLATED = "violated"
     MISSING = "missing"
-    NOT_APPLICABLE = "not_applicable"
+    NOT_APPLICABLE = "not_applicable"  # reserved for `applies_when` conditionals (deferred, schema §10)
     AMBIGUOUS = "ambiguous"
 
 
@@ -102,14 +102,19 @@ class SpecField(BaseModel):
 
     @model_validator(mode="after")
     def _check_rules(self) -> SpecField:
+        # Accumulate ALL rule violations, then raise once — a linter that reports one error
+        # at a time is a fix-one-rerun-find-next grind.
+        errs: list[str] = []
         if self.category in (Cat.AUGMENTATION, Cat.AUGMENTATION_PIPELINE) and self.phase is None:
-            raise ValueError(f"phase is required for category {self.category.value}")
+            errs.append(f"phase is required for category {self.category.value}")
         if self.not_reported and not self.searched_passages:
-            raise ValueError("not_reported=True requires a non-empty searched_passages")
+            errs.append("not_reported=True requires a non-empty searched_passages")
         if not self.not_reported and self.jumper is None:
-            raise ValueError("a reported field requires a jumper")
+            errs.append("a reported field requires a jumper")
         if self.value_in_media and (self.jumper is None or self.jumper.media is None):
-            raise ValueError("value_in_media=True requires jumper.media")
+            errs.append("value_in_media=True requires jumper.media")
+        if errs:
+            raise ValueError("; ".join(errs))
         return self
 
 

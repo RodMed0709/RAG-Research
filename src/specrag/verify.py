@@ -14,13 +14,14 @@ from typing import Callable
 
 from pydantic import BaseModel
 
-from .speccard import Jumper, LocatorKind, SpecCard, SpecField, State, ValueKind
+from .speccard import Jumper, LocatorKind, SpecCard, SpecField, State, ValueKind, VLevel
 
 
 class FieldVerdict(BaseModel):
     field_name: str
     state: State
     blocked: bool
+    needs_human: bool = False
     verdict_source: str
     code_evidence: str | None = None
     jumper: Jumper | None = None
@@ -74,19 +75,41 @@ def deterministic_compare(field: SpecField, located: str) -> State:
     return State.AMBIGUOUS
 
 
+def _decide(field: SpecField, state: State) -> tuple[bool, bool]:
+    """Map a per-field state to ``(blocked, needs_human)`` per schema §3/§7.
+
+    - AMBIGUOUS always goes to the human queue (never a silent pass).
+    - VIOLATED on a moat-critical field whose card is NOT human-verified escalates to a
+      human instead of auto-blocking: self-consistent != verified, so you can't hard-block
+      on a card a human never confirmed.
+    - VIOLATED otherwise blocks hard. HONORED / MISSING / NOT_APPLICABLE neither block nor flag.
+    """
+    if state == State.AMBIGUOUS:
+        return False, True
+    if state == State.VIOLATED:
+        if field.moat_critical and field.verification_level != VLevel.HUMAN:
+            return False, True
+        return True, False
+    return False, False
+
+
 def verify_field(field: SpecField, code: str, *, locate: Locator, judge: Judge) -> FieldVerdict:
+    located = locate(field, code)
+
     if field.not_reported:
-        located = locate(field, code)
+        # The card claims the paper does not report this. If the code uses it anyway, that is a
+        # card-vs-reality contradiction -> AMBIGUOUS -> human queue (not a silent pass).
         state = State.MISSING if located is None else State.AMBIGUOUS
+        blocked, needs_human = _decide(field, state)
         return FieldVerdict(
-            field_name=field.name, state=state, blocked=False,
-            verdict_source="deterministic", jumper=field.jumper,
+            field_name=field.name, state=state, blocked=blocked, needs_human=needs_human,
+            verdict_source="deterministic", jumper=field.jumper, code_evidence=located,
         )
 
-    located = locate(field, code)
     if located is None:
+        # Reported by the paper but absent from the code: MISSING. Doesn't block (flag/ask).
         return FieldVerdict(
-            field_name=field.name, state=State.MISSING, blocked=False,
+            field_name=field.name, state=State.MISSING, blocked=False, needs_human=False,
             verdict_source="deterministic", jumper=field.jumper,
         )
 
@@ -98,8 +121,9 @@ def verify_field(field: SpecField, code: str, *, locate: Locator, judge: Judge) 
         state = deterministic_compare(field, located)
         source = "deterministic"
 
+    blocked, needs_human = _decide(field, state)
     return FieldVerdict(
-        field_name=field.name, state=state, blocked=(state == State.VIOLATED),
+        field_name=field.name, state=state, blocked=blocked, needs_human=needs_human,
         verdict_source=source, jumper=field.jumper, code_evidence=located,
     )
 

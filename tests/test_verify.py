@@ -16,6 +16,7 @@ from specrag import (
     State,
     ValueKind,
     ValueSpec,
+    VLevel,
     flip_rate,
     verify_consistency,
     verify_field,
@@ -178,6 +179,58 @@ def test_flip_rate_literal_zero():
     card = SpecCard(card_id="p::m", paper_ref="p", method="m", fields=[_hard()])
     fr = flip_rate(card, "batch_size = 8", locate=locate_found("8"), judge=judge_const(State.VIOLATED), k=10)
     assert fr["batch_size"] == 0.0
+
+
+# --- Post-adversarial gate: moat-critical escalation + AMBIGUOUS never silently passes ---
+
+def _moat_semantic(level: VLevel) -> SpecField:
+    return SpecField(
+        name="jitter", category=Cat.AUGMENTATION, value_kind=ValueKind.ENUM,
+        locator_kind=LocatorKind.SEMANTIC,
+        value_spec=ValueSpec(kind=ValueKind.ENUM, equals="intensity_jitter"),
+        phase=Phase.EVAL, moat_critical=True, verification_level=level, jumper=_jumper(),
+    )
+
+
+def test_moat_critical_violated_self_consistent_escalates():
+    # self-consistent card, VIOLATED -> do NOT auto-block; escalate to human
+    v = verify_field(_moat_semantic(VLevel.SELF), "jitter in train",
+                     locate=locate_found("jitter"), judge=judge_const(State.VIOLATED))
+    assert v.state == State.VIOLATED
+    assert v.blocked is False
+    assert v.needs_human is True
+
+
+def test_moat_critical_violated_human_blocks_hard():
+    # human-verified card, VIOLATED -> hard block (no escalation needed)
+    v = verify_field(_moat_semantic(VLevel.HUMAN), "jitter in train",
+                     locate=locate_found("jitter"), judge=judge_const(State.VIOLATED))
+    assert v.blocked is True
+    assert v.needs_human is False
+
+
+def test_ambiguous_hard_unparseable_flags_human():
+    # hard NUMERIC field, code value won't parse ("eight") -> AMBIGUOUS, queued, NOT a silent pass
+    f = _hard(value_spec=ValueSpec(kind=ValueKind.NUMERIC, equals=8))
+    v = verify_field(f, "batch_size = eight", locate=locate_found("eight"), judge=judge_const(State.HONORED))
+    assert v.state == State.AMBIGUOUS
+    assert v.blocked is False
+    assert v.needs_human is True
+
+
+def test_not_reported_contradicted_flags_human():
+    # card says not_reported, but code reports it -> contradiction surfaced to human
+    f = SpecField(
+        name="dropout", category=Cat.HYPERPARAMETER, value_kind=ValueKind.NUMERIC,
+        locator_kind=LocatorKind.LITERAL, value_spec=ValueSpec(kind=ValueKind.NUMERIC),
+        not_reported=True,
+        searched_passages=[_jumper(verbatim_text="weight decay 1e-4", anchor_phrase="weight decay")],
+        jumper=None,
+    )
+    v = verify_field(f, "dropout = 0.5", locate=locate_found("dropout"), judge=judge_const(State.HONORED))
+    assert v.state == State.AMBIGUOUS
+    assert v.needs_human is True
+    assert v.blocked is False
 
 
 def test_flip_rate_semantic_measured():

@@ -43,8 +43,8 @@ SNIPPETS = {
         "batch_size = 8\naugment.jitter(intensity=0.1)  # applied in train loop\n",
     "HONORED (jitter@eval, batch ok — must PASS)":
         "batch_size = 8\nif phase == 'eval':\n    augment.jitter(intensity=0.1)\n",
-    "NOT_REPORTED (no dropout — must NOT block)":
-        "batch_size = 8\nmodel = Net()  # paper never reported dropout\n",
+    "NOT_REPORTED (paper silent, code silent — must NOT block)":
+        "batch_size = 8\nif phase == 'eval':\n    augment.jitter(intensity=0.1)\nmodel = Net()\n",
 }
 
 
@@ -57,11 +57,19 @@ def main() -> None:
         print(f"== {title} ==")
         verdicts = verify_consistency(card, code, locate=toy_locate, judge=toy_judge)
         blocked_any = False
+        human_any = False
         for v in verdicts:
-            mark = "BLOCK" if v.blocked else "ok"
+            mark = "BLOCK" if v.blocked else ("HUMAN" if v.needs_human else "ok")
             blocked_any = blocked_any or v.blocked
+            human_any = human_any or v.needs_human
             print(f"   [{mark:>5}] {v.field_name:<12} {v.state.value:<14} via {v.verdict_source}")
-        print(f"   --> output {'BLOCKED' if blocked_any else 'allowed'}\n")
+        if blocked_any:
+            outcome = "BLOCKED"
+        elif human_any:
+            outcome = "HELD for human"
+        else:
+            outcome = "allowed"
+        print(f"   --> output {outcome}\n")
 
     fr = flip_rate(card, SNIPPETS["HONORED (jitter@eval, batch ok — must PASS)"],
                    locate=toy_locate, judge=toy_judge, k=10)
