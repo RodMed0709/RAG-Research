@@ -1,0 +1,14 @@
+specrag
+Copyright 2026 Rodrigo Medina
+
+This product includes software developed as a research tool for
+reproducibility-consistency verification of ML code against papers.
+
+Built on PaperQA2 (https://github.com/Future-House/paper-qa),
+Copyright FutureHouse, licensed under the Apache License 2.0.
+PaperQA2 is used as a pip dependency; its source is not vendored here.
+Cite: arXiv:2409.13740.
+
+Techniques referenced:
+- Contextual Retrieval (Anthropic)
+- HyperPIE (scientific hyperparameter extraction)

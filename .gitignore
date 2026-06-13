@@ -1,0 +1,34 @@
+# --- specrag: corpus real y config de dominio NUNCA al repo ---
+corpus/
+vector_store/
+*.env
+.env
+domain_config/
+taxonomy/
+
+# scratch de exploración (no parte del motor)
+explore_paperqa*.py
+
+# planes de diseño internos (historia, no doc público del repo)
+PLAN_papers-rag_*.md
+KICKOFF_specrag_claude_code.md
+speccard_schema.md
+REPORT_paperqa_integration.md
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- OS / editores ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
