@@ -33,10 +33,20 @@ def _verdict_dict(v: FieldVerdict) -> dict[str, object]:
     }
 
 
-def _verify(card_json: str, code: str) -> dict[str, object]:
-    from .llm import load_env, make_judge, make_locator
+def _load_keys() -> None:
+    """Find DEEPSEEK_API_KEY's .env whether the server is launched from the project dir or
+    elsewhere (an MCP client may spawn it with any cwd)."""
+    from .llm import load_env
 
-    load_env()
+    here = Path(__file__).resolve()
+    for candidate in (Path.cwd() / ".env", here.parents[2] / ".env"):
+        load_env(candidate)
+
+
+def _verify(card_json: str, code: str) -> dict[str, object]:
+    from .llm import make_judge, make_locator
+
+    _load_keys()
     card = SpecCard.model_validate_json(card_json)
     verdicts = verify_consistency(card, code, locate=make_locator(), judge=make_judge())
     blocked = any(v.blocked for v in verdicts)
