@@ -9,6 +9,9 @@ taxonomy/
 # scratch de exploración (no parte del motor)
 explore_paperqa*.py
 
+# PDFs de prueba: pesados, se re-bajan desde examples/test_papers/SOURCES.md
+*.pdf
+
 # planes de diseño internos (historia, no doc público del repo)
 PLAN_papers-rag_*.md
 KICKOFF_specrag_claude_code.md
