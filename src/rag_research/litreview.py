@@ -102,15 +102,16 @@ def dedup_fichas(fichas: list[Ficha]) -> list[Ficha]:
     out: list[Ficha] = []
     for f in fichas:
         doi = _norm_doi(f.doi)
+        key = _title_key(f)
         if doi is not None:
-            if doi in seen_doi:
+            if doi in seen_doi or key in seen_title:
                 continue
             seen_doi.add(doi)
-        else:
-            key = _title_key(f)
-            if key in seen_title:
-                continue
-            seen_title.add(key)
+        elif key in seen_title:
+            continue
+        # Seed the title index even for DOI'd entries, so a later DOI-less copy of the same
+        # paper (same title+year) is still caught.
+        seen_title.add(key)
         out.append(f)
     return out
 

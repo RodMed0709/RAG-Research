@@ -155,6 +155,9 @@ def _parse_verdict(text: str) -> ClaimVerdict:
     up = text.strip().upper().strip(".")
     if up in _VERDICT_BY_NAME:
         return _VERDICT_BY_NAME[up]
+    # A negated reply ("NOT HONORED") would single-token-match HONORED; fail SAFE instead.
+    if re.search(r"\b(NOT|NO|N'T)\b", up):
+        return ClaimVerdict.AMBIGUOUS
     hits = {v for name, v in _VERDICT_BY_NAME.items() if re.search(rf"\b{name}\b", up)}
     return next(iter(hits)) if len(hits) == 1 else ClaimVerdict.AMBIGUOUS
 

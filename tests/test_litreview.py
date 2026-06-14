@@ -64,6 +64,13 @@ def test_dedup_by_doi():
     assert len(dedup_fichas([a, b])) == 1
 
 
+def test_dedup_catches_doi_then_doiless_copy():
+    # Same paper arrives once with a DOI, once without — must still collapse to one.
+    a = _ficha("a", "Shared Paper", {}, year=2024, doi="10.1/z")
+    b = _ficha("b", "Shared Paper", {}, year=2024)
+    assert len(dedup_fichas([a, b])) == 1
+
+
 def test_dedup_by_title_year_when_no_doi():
     a = _ficha("a", "Same Title", {}, year=2024)
     b = _ficha("b", "same title", {}, year=2024)

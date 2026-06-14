@@ -73,29 +73,31 @@ def _compare_value_spec(spec: ValueSpec, located: str) -> State:
     return State.AMBIGUOUS  # STRUCT / FREEFORM
 
 
-def _attach_anchor(claim: Claim, passages: list[Passage], value: str | None) -> None:
-    """Attach verbatim evidence. When a value is located, pin it inside each passage via
-    make_jumper; otherwise (freeform claims) anchor on the top passage. Always leaves at
-    least the top passage as evidence when any passage exists."""
+def _value_anchors(passages: list[Passage], value: str) -> list[Jumper]:
+    """Jumpers that PIN ``value`` verbatim inside a passage — proof that substantiates a
+    numeric verdict. Empty if the value (e.g. a normalized "70000000") never appears as-is."""
+    out: list[Jumper] = []
+    for p in passages:
+        jp = make_jumper(p, value)
+        if jp is not None:
+            out.append(jp)
+    return out
+
+
+def _context_anchor(passages: list[Passage]) -> list[Jumper]:
+    """The top passage as context evidence — what the judge/extractor actually read. Not a
+    value-precise pin; used for freeform verdicts and for 'looked here, found nothing' cases."""
     if not passages:
-        return
-    attached: list[Jumper] = []
-    if value is not None:
-        for p in passages:
-            jp = make_jumper(p, value)
-            if jp is not None:
-                attached.append(jp)
-    if not attached:
-        p = passages[0]
-        attached.append(
-            Jumper(
-                pq_dockey=p.pq_dockey,
-                verbatim_text=p.verbatim_text,
-                anchor_phrase=p.verbatim_text[:200],
-                page_range=p.page_range,
-            )
+        return []
+    p = passages[0]
+    return [
+        Jumper(
+            pq_dockey=p.pq_dockey,
+            verbatim_text=p.verbatim_text,
+            anchor_phrase=p.verbatim_text[:200],
+            page_range=p.page_range,
         )
-    claim.evidence = attached
+    ]
 
 
 def verify_claim(
@@ -117,17 +119,27 @@ def verify_claim(
     if claim.kind in (ClaimKind.NUMERIC_FACT, ClaimKind.COMPARATIVE) and claim.value_spec is not None:
         located = extractor(claim.text, passage_texts)
         if located is None:
-            _attach_anchor(claim, passages, None)
+            claim.evidence = _context_anchor(passages)
             claim.verdict = ClaimVerdict.UNSUPPORTED
             return claim
-        state = _compare_value_spec(claim.value_spec, located)
-        verdict = _numeric_state_to_verdict(state)
-        _attach_anchor(claim, passages, located)
+        verdict = _numeric_state_to_verdict(_compare_value_spec(claim.value_spec, located))
+        precise = _value_anchors(passages, located)
+        if precise:
+            # The compared value is pinned verbatim in a passage — strongest evidence.
+            claim.evidence = precise
+        else:
+            # Value matched per the extractor but we could NOT anchor it verbatim (e.g. the
+            # source says "70 million", not "70000000"). We refuse to assert HONORED without a
+            # value-precise anchor — that is the anti-hallucination guarantee — so a would-be
+            # HONORED goes to the human queue. Keep context passages as what we looked at.
+            claim.evidence = _context_anchor(passages)
+            if verdict == ClaimVerdict.HONORED:
+                verdict = ClaimVerdict.AMBIGUOUS
     else:
         verdict = judge(claim.text, passage_texts)
-        _attach_anchor(claim, passages, None)
+        claim.evidence = _context_anchor(passages)
 
-    # Never assert HONORED without a verbatim anchor.
+    # Defensive: never assert HONORED without any anchor at all.
     if verdict == ClaimVerdict.HONORED and not claim.evidence:
         verdict = ClaimVerdict.UNSUPPORTED
     claim.verdict = verdict

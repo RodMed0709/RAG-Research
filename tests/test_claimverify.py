@@ -78,6 +78,35 @@ def test_numeric_contradicted():
     assert c.verdict == ClaimVerdict.CONTRADICTED
 
 
+def test_numeric_honored_without_verbatim_anchor_downgrades_to_ambiguous():
+    # Source says "70 million" (no digits); extractor normalizes to "70000000" which the
+    # passage does not contain verbatim. We must NOT assert HONORED without a value-precise
+    # anchor -> AMBIGUOUS (human queue). This is the Finding-1 anti-hallucination guard.
+    c = Claim(
+        claim_id="c", text="affects 70M", kind=ClaimKind.NUMERIC_FACT,
+        value_spec=ValueSpec(kind=ValueKind.NUMERIC, equals=70_000_000),
+    )
+    verify_claim(
+        c, retrieve=_retriever([_passage("the disease affects 70 million people")]),
+        judge=_judge(ClaimVerdict.AMBIGUOUS), extractor=_extractor("70000000"),
+    )
+    assert c.verdict == ClaimVerdict.AMBIGUOUS
+    assert len(c.evidence) == 1  # context passage kept as "what we looked at"
+
+
+def test_numeric_honored_with_verbatim_anchor_pins_value():
+    c = Claim(
+        claim_id="c", text="affects 70M", kind=ClaimKind.NUMERIC_FACT,
+        value_spec=ValueSpec(kind=ValueKind.NUMERIC, equals=70_000_000),
+    )
+    verify_claim(
+        c, retrieve=_retriever([_passage("affects 70000000 people")]),
+        judge=_judge(ClaimVerdict.AMBIGUOUS), extractor=_extractor("70000000"),
+    )
+    assert c.verdict == ClaimVerdict.HONORED
+    assert c.evidence[0].char_span is not None  # value pinned verbatim
+
+
 def test_numeric_value_not_found_is_unsupported():
     c = Claim(
         claim_id="c", text="affects 70M", kind=ClaimKind.NUMERIC_FACT,
@@ -102,6 +131,14 @@ def test_range_compare():
     spec = ValueSpec(kind=ValueKind.RANGE, low=0.0, high=1.0)
     assert _compare_value_spec(spec, "0.5") == State.HONORED
     assert _compare_value_spec(spec, "2.0") == State.VIOLATED
+
+
+def test_parse_verdict_fails_safe_on_negation():
+    from rag_research.llm import _parse_verdict
+
+    assert _parse_verdict("HONORED") == ClaimVerdict.HONORED
+    assert _parse_verdict("NOT HONORED") == ClaimVerdict.AMBIGUOUS  # negation -> safe
+    assert _parse_verdict("garble nonsense") == ClaimVerdict.AMBIGUOUS
 
 
 def test_verify_claimcard_maps_all():
