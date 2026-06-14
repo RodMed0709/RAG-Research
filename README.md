@@ -2,115 +2,112 @@
 
 # specrag
 
-**Catch the reproducibility bugs your LLM forgets between sessions.**
+### Your LLM keeps "reproducing" papers wrong. specrag catches it — line by line, traceable to the passage that says so.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
-[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
+[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#honest-status)
 [![Built on PaperQA2](https://img.shields.io/badge/built%20on-PaperQA2-7b42bc.svg)](https://github.com/Future-House/paper-qa)
-
-*A grounded linter that verifies ML code honors the reproducibility norms of papers —
-every constraint traceable to a verified verbatim passage.*
 
 </div>
 
 ---
 
-## The problem
+You asked your LLM to implement a method from a paper. It used `batch_size=8`. You asked again
+next week — it forgot. It dropped the intensity jitter into the **training** loop when the paper
+clearly said **eval only**. The Dice score still looks fine. The reproduction is quietly broken,
+and you won't find out until a reviewer does.
 
-Ask an LLM to implement a method from a paper twice and you get two different setups. It uses
-`batch_size=8` in one session and forgets it in the next. It applies intensity jitter at
-**training** time when the paper said **eval only**. These norms live in the model's volatile
-parametric memory — so they drift, silently, and your "reproduction" quietly isn't one.
+Here's the real problem: those norms never lived anywhere solid. They lived in the model's head —
+and the model's head resets every session.
 
-No existing tool catches this. Elicit / Consensus / SciSpace answer *"what does the literature
-say?"*; Paper2Code reproduces a paper in code. None answer:
+**specrag pins them down.** It reads the paper, turns each reproducibility rule into a typed,
+verbatim-anchored *spec-card*, then checks your code against it — every constraint traceable to the
+exact passage that demands it. Hard numbers (`batch_size`, `lr`) are checked by **code, not
+vibes**. Only the genuinely fuzzy stuff — *did the augmentation run in the right phase?* — goes to
+an LLM. There's no "looks good to me" holistic judge, because that hand-wave is the exact failure
+it exists to kill.
 
-> **Does my generated code honor ALL the reproducibility norms of these papers — consistently —
-> with every constraint traceable to a verified passage?**
+> It's not another "chat with your PDF." It's a **linter for reproducibility, grounded in the
+> paper.**
 
-## What it does
-
-specrag is **not** a retriever (that's commodity — it's built on
-[PaperQA2](https://github.com/Future-House/paper-qa)). It's a **grounded linter**:
-
-- **Spec-cards** — typed records of reproducibility constraints, one per `paper × method`, each
-  field anchored to a cached **verbatim** passage.
-- **`verify`** — a per-field 5-state checklist. **Hard fields** (`batch_size`, `lr`) are compared
-  **deterministically**: the LLM only *locates* the value in your code, and code does the
-  comparison. Only genuinely **semantic** fields (an augmentation's phase) reach the LLM. No
-  holistic judge — that would reproduce the very inconsistency it hunts.
-- **Version stamp** — generated code records which card version it was checked against. Re-extract
-  the card, change a value, and the old code is flagged **STALE** instead of drifting silently.
-
-### The bug it's built to catch
+## See it catch the bug everyone ships
 
 ```python
-# paper: "intensity jitter applied only at evaluation"
+# the paper: "intensity jitter applied only at evaluation"
 for x, y in train_loader:
-    x = intensity_jitter(x, 0.1)   # <-- applied during TRAINING
+    x = intensity_jitter(x, 0.1)   # ...applied during TRAINING
 ```
 
 ```text
 $ specrag verify card.json train.py
-  [BLOCK] intensity_jitter   violated   via llm     <- wrong phase, caught
+  [ ok  ] batch_size         honored    via deterministic
+  [BLOCK] intensity_jitter   violated   via llm        <- wrong phase. caught.
   BLOCKED (exit 2)
 ```
+
+Hard field, hard answer (code compared `8 == 8`). Fuzzy field, real judgment (the LLM saw jitter in
+the train loop and blocked it). And every verdict points back to the verbatim line in the paper.
+
+## "Don't Elicit / Consensus / Paper2Code already do this?"
+
+No. Those tell you *what the literature says*, or generate a reproduction *once*. None of them
+**stand guard over consistency** — that your code honors every norm, every time, traceably, and
+that it gets flagged the moment a re-read of the paper changes one. That's the gap nobody fills.
+That's specrag.
 
 ## How it works
 
 ```
 paper PDF ──▶ PaperQA2 substrate ──▶ verbatim passages
                                         │
-                     extract (N-way agreement + independent read-back)
+                     extract (N-way agreement + an independent read-back)
                                         ▼
                                   typed spec-card
                                         │
-   your ML code ──────────────▶   verify   ──▶  HONORED / VIOLATED / MISSING / AMBIGUOUS
+   your ML code ──────────────▶   verify   ──▶  HONORED · VIOLATED · MISSING · AMBIGUOUS
                                         │                                + version stamp
                        moat-critical + unverified card ──▶ escalate to a human
 ```
 
-A hard verdict never flips between runs (code does the compare). A semantic field is judged by an
-LLM, and if it touches a moat-critical, not-yet-human-verified card, a violation **escalates to a
-human** instead of auto-blocking — *self-consistent is not the same as verified.*
+- **Hard verdicts never flip** between runs — code does the compare, not a sampler.
+- **A semantic field** is judged by an LLM, and if it touches a make-or-break constraint on a card
+  no human has signed off yet, a violation **escalates to you** instead of silently blocking.
+  *Self-consistent isn't the same as verified.*
+- **The version stamp** is the cross-session memory: re-extract a card, change a value, and last
+  week's code lights up **STALE** instead of drifting in the dark.
 
-## Quickstart
+## 60-second start
 
 ```bash
-# install (engine + PaperQA2 substrate)
 pip install "specrag[paperqa] @ git+https://github.com/RodMed0709/RAG-Research.git"
 
-# bring your own LLM key — DeepSeek by default, any LiteLLM-supported model works
+# bring your own LLM key — DeepSeek by default, any LiteLLM model works
 echo "DEEPSEEK_API_KEY=sk-your-own-key" > .env
 
-# verify a code file against a spec-card
-specrag verify card.json train.py
+specrag verify card.json train.py        # exit 0 ok · 1 ask a human · 2 blocked
 ```
 
-Exit code: `0` ok · `1` held for human · `2` blocked.
+Retrieval runs **fully offline** on local embeddings. Only the semantic judge calls out — and it
+calls *your* key, never a shipped one.
 
-### Inside Claude Code (MCP)
+## Drop it into Claude Code
 
-specrag ships an MCP server, so an AI assistant can offload grounded verification to it (the
-assistant orchestrates; specrag + your LLM do the grounded check):
+specrag ships an MCP server, so your AI assistant can hand the grounded check to it (assistant
+orchestrates; specrag + your LLM do the verification):
 
 ```bash
 pip install "specrag[mcp] @ git+https://github.com/RodMed0709/RAG-Research.git"
-claude mcp add rag-research -- python -m specrag.mcp_server
+claude mcp add RAG-Research -- python -m specrag.mcp_server
 ```
 
-Then just ask: *"use rag-research to verify this code against the card."* Tools exposed:
-`verify_code_against_card`, `verify_file_against_card`, `check_code_stamp`.
+Then just say: *"use RAG-Research to verify this against the card."* Tools: `verify_code_against_card`,
+`verify_file_against_card`, `check_code_stamp`.
 
-> **You bring your own LLM key.** specrag never ships one — set `DEEPSEEK_API_KEY` (or configure
-> any LiteLLM model). Retrieval runs **fully offline** with local embeddings; only the semantic
-> judge/extractor call out.
+## Spec-cards (the one thing you author)
 
-## Spec-cards
-
-A card is the input you author (by hand, or via the extraction pipeline). Full examples live in
-`examples/cards/`. Sketch:
+A card is a paper's reproducibility rules, typed. Write them by hand (see `examples/cards/`) or pull
+them with the extraction pipeline. Sketch:
 
 ```json
 {
@@ -132,32 +129,32 @@ A card is the input you author (by hand, or via the extraction pipeline). Full e
 }
 ```
 
-## Examples
+## Kick the tires
 
-Runnable demos in `examples/` (offline where possible):
+Runnable demos in `examples/` (offline where they can be):
 
-| Demo | Shows |
+| Demo | What you'll see |
 |---|---|
-| `run_slice.py` | the 3 verify polarities (block / pass / don't-block) |
-| `smoke_substrate.py` | ingest a real PDF, retrieve verbatim passages — offline |
-| `smoke_extract.py`, `smoke_llm.py` | extraction + the semantic judge |
-| `smoke_full_llm.py` | the full loop: PDF → extract → card → generate → verify → stamp |
-| `run_stamp.py` | the version stamp catching cross-session drift |
+| `run_slice.py` | the three verdicts: block / pass / don't-block |
+| `smoke_substrate.py` | ingest a real PDF, pull verbatim passages — offline |
+| `smoke_llm.py` | a real LLM judging the jitter-phase bug |
+| `smoke_full_llm.py` | the whole loop: PDF → extract → card → generate → verify → stamp |
+| `run_stamp.py` | the stamp catching last-session's code going stale |
 
-## Status
+## Honest status
 
-Alpha, research tool — **not a maintained product. Use at your own risk.**
+Alpha. A research tool, not a maintained product — **use it at your own risk.** What's solid: the
+verify engine, the offline PaperQA2 substrate, extraction with cross-checks, the version stamp, the
+typed card-builder, DeepSeek adapters, the CLI, and the MCP server. What's not here yet: a REST
+face, image-equation handling, and conditional (`applies_when`) verify logic. No promises I can't
+keep.
 
-**Works today:** verify engine, PaperQA2 substrate (offline retrieval), extraction with N-way
-agreement + independent read-back, version stamp, typed card-builder, DeepSeek adapters, CLI, MCP
-server. **Not yet:** REST face, image-equation handling, conditional (`applies_when`) verify logic.
+## Standing on shoulders
 
-## Built on
-
-[PaperQA2](https://github.com/Future-House/paper-qa) (FutureHouse, Apache-2.0) — used as a pip
-dependency, not vendored. Please cite *arXiv:2409.13740*. Techniques referenced: Contextual
-Retrieval (Anthropic), HyperPIE.
+Built on **[PaperQA2](https://github.com/Future-House/paper-qa)** (FutureHouse, Apache-2.0) — a pip
+dependency, not vendored. Please cite *arXiv:2409.13740*. Ideas borrowed from Contextual Retrieval
+(Anthropic) and HyperPIE.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). Cite via [CITATION.cff](CITATION.cff).
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). Cite it via [CITATION.cff](CITATION.cff).
