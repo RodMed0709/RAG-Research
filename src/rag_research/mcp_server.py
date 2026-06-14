@@ -15,9 +15,14 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
+import json
+
 from .claim import Claim, ClaimCard
 from .claimverify import verify_claimcard
 from .codegen import Stamp, check_stamp
+from .litreview import Ficha, NoveltyProfile
+from .litreview import tier_papers as _tier_papers
+from .report import render_reporte, render_v2
 from .speccard import SpecCard
 from .verify import FieldVerdict, verify_consistency
 
@@ -159,6 +164,41 @@ async def verify_claim_against_corpus(
         "summary": summary,
         "claims": [_claim_dict(c) for c in card.claims],
     }
+
+
+def _parse_fichas(fichas_json: str) -> list[Ficha]:
+    return [Ficha.model_validate(x) for x in json.loads(fichas_json)]
+
+
+@mcp.tool
+def tier_papers(profile_json: str, fichas_json: str, core_threshold: float = 0.6) -> dict[str, object]:
+    """Tier literature fichas against a paper's novelty profile, deterministically.
+
+    ``profile_json`` is a NoveltyProfile (axes with roles core/differentiator/context);
+    ``fichas_json`` is a JSON array of fichas (each with ``axis_matches``). Dedups by DOI /
+    title, assigns T1-T4 + threat by rule, and returns fichas sorted by importance. Same
+    input -> same tiers (no LLM in the ranking). Use before rendering a state-of-the-art.
+    """
+    profile = NoveltyProfile.model_validate_json(profile_json)
+    fichas = _parse_fichas(fichas_json)
+    ranked = _tier_papers(profile, fichas, core_threshold=core_threshold)
+    return {
+        "paper_ref": profile.paper_ref,
+        "count": len(ranked),
+        "fichas": [f.model_dump(mode="json") for f in ranked],
+    }
+
+
+@mcp.tool
+def render_report(profile_json: str, fichas_json: str, kind: str = "full") -> dict[str, object]:
+    """Render a state-of-the-art report as Markdown. ``kind`` = ``full`` (REPORTE.md: novelty
+    matrix, tier tables, actionables) or ``v2`` (condensed, publication-ready, confidence
+    labels). Fichas should already be tiered (run ``tier_papers`` first). Returns the markdown.
+    """
+    profile = NoveltyProfile.model_validate_json(profile_json)
+    fichas = _parse_fichas(fichas_json)
+    md = render_v2(profile, fichas) if kind == "v2" else render_reporte(profile, fichas)
+    return {"kind": kind, "markdown": md}
 
 
 def main() -> None:

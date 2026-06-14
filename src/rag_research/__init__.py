@@ -36,6 +36,17 @@ from .codegen import (
 from .build import build_field, build_value_spec
 from .claim import Claim, ClaimCard, ClaimKind, ClaimVerdict
 from .claimverify import verify_claim, verify_claimcard
+from .litreview import (
+    Axis,
+    AxisRole,
+    Ficha,
+    NoveltyProfile,
+    Threat,
+    Tier,
+    dedup_fichas,
+    tier_papers,
+)
+from .report import render_reporte, render_v2
 
 __version__ = "0.0.1"
 
@@ -70,4 +81,14 @@ __all__ = [
     "ClaimVerdict",
     "verify_claim",
     "verify_claimcard",
+    "Axis",
+    "AxisRole",
+    "Tier",
+    "Threat",
+    "NoveltyProfile",
+    "Ficha",
+    "tier_papers",
+    "dedup_fichas",
+    "render_reporte",
+    "render_v2",
 ]
