@@ -19,7 +19,7 @@
         "verbatim_text": "The encoder was fine-tuned with a batch size of 8 per GPU for 200 epochs.",
         "anchor_phrase": "batch size of 8 per GPU",
         "page_range": "pages 5-6",
-        "char_span": [40, 41]
+        "char_span": [14, 15]
       }
     },
     {

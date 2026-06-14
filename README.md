@@ -23,11 +23,35 @@ Cite: *arXiv:2409.13740*. See `NOTICE`.
 ## Install
 
 ```bash
-pip install specrag                 # core: spec-cards + verify (light)
-pip install "specrag[paperqa]"      # + PaperQA2 substrate (extraction/retrieval)
-pip install "specrag[mcp]"          # + MCP server (use inside Claude Code / agents)
-pip install "specrag[all]"
+pip install specrag                 # core: spec-cards + verify + version stamp (light)
+pip install "specrag[paperqa]"      # + PaperQA2 substrate (PDF ingest, retrieval)
 ```
+
+The engine takes the LLM as an injected callable. `specrag.llm` ships a DeepSeek adapter
+(via LiteLLM); set `DEEPSEEK_API_KEY` in a `.env` file. An MCP server and a REST face are
+planned, not yet implemented.
+
+## Usage
+
+Verify a code file against a (hand-authored or extracted) spec-card, using DeepSeek as the
+semantic judge and code-value locator:
+
+```bash
+specrag verify card.json train.py
+```
+
+Per-field verdicts print with a `BLOCK` / `HUMAN` / `ok` marker; exit code is `0` (ok),
+`1` (held for human), or `2` (blocked). Hard fields are compared deterministically; only
+semantic fields go to the LLM. See `examples/` for runnable demos (`run_slice.py`,
+`smoke_substrate.py`, `smoke_extract.py`, `smoke_llm.py`, `run_stamp.py`).
+
+## Status
+
+Working today: the verify engine (5-state per-field checklist, deterministic hard-field
+compare, moat-critical human-escalation), the PaperQA2 substrate (offline local-embedding
+retrieval), card extraction with N-way agreement + independent read-back, the version stamp,
+the typed card-builder, real DeepSeek adapters, and a CLI. Not yet: MCP/REST faces, image
+equation handling, conditional (`applies_when`) verify logic.
 
 ## License
 

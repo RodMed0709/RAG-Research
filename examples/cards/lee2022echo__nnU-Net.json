@@ -17,7 +17,7 @@
         "verbatim_text": "We trained with SGD and an initial learning rate of 1e-4 with cosine decay.",
         "anchor_phrase": "initial learning rate of 1e-4",
         "page_range": "pages 4-4",
-        "char_span": [26, 30]
+        "char_span": [25, 29]
       }
     },
     {

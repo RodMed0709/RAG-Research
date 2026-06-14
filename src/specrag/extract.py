@@ -45,6 +45,16 @@ def _norm(s: str) -> str:
     return s.strip().lower()
 
 
+def _anchor_window(text: str, value: str, window: int = 60) -> str:
+    """Tight window around the first occurrence of ``value`` in ``text`` — so the read-back
+    reads the LOCAL context, not the whole ~5000-char chunk (schema §5: read-back on the
+    anchor). Falls back to the full text if the value is not literally present."""
+    i = text.find(value)
+    if i < 0:
+        return text
+    return text[max(0, i - window): i + len(value) + window]
+
+
 def _values_match(a: str, b: str) -> bool:
     """Typed-ish comparison: numbers compared as numbers (so "8" == "8.0"), else lexical.
     A reader that reads "32" from "8 per GPU x 4 GPUs" must NOT match an extractor's "8"."""
@@ -102,7 +112,9 @@ def extract_field(
     readback_value: str | None = None
     readback_ok: bool | None = None
     if value is not None:
-        readback_value = reader(passage.verbatim_text, field_name)
+        # read-back reads only the local window around the value, not the whole chunk
+        anchor = _anchor_window(passage.verbatim_text, value)
+        readback_value = reader(anchor, field_name)
         readback_ok = readback_value is not None and _values_match(readback_value, value)
 
     level = (

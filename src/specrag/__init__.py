@@ -33,6 +33,7 @@ from .codegen import (
     generate_and_verify,
     make_stamp,
 )
+from .build import build_field, build_value_spec
 
 __version__ = "0.0.1"
 
@@ -59,4 +60,6 @@ __all__ = [
     "make_stamp",
     "check_stamp",
     "generate_and_verify",
+    "build_value_spec",
+    "build_field",
 ]

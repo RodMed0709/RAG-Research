@@ -50,6 +50,8 @@ packages = ["src/specrag"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# intentionally-incomplete code snippets used as verify fixtures
+extend-exclude = ["examples/sample_code"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
