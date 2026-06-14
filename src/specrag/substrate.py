@@ -100,8 +100,11 @@ class Substrate:
 
     def _local_settings(self) -> Any:
         s = self._Settings()
-        # offline-friendly: don't trigger LLM-driven metadata inference on ingest
+        # offline-friendly: no LLM-driven metadata inference, and no multimodal image
+        # enrichment (which captions figures via an LLM). Media/equation extraction is a
+        # later, human-confirmed path; text retrieval needs neither.
         s.parsing.use_doc_details = False
+        s.parsing.multimodal = False
         return s
 
     async def ingest(self, path: str, *, paper_ref: str | None = None, citation: str | None = None) -> str:
