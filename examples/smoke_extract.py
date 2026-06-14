@@ -28,18 +28,21 @@ from specrag.extract import extract_field
 from specrag.substrate import Substrate, make_jumper
 
 PDF = Path(__file__).parent / "test_papers" / "label_dropout_2403.07818.pdf"
-_NUM = re.compile(r"\b(\d+)\b")
+
+# TWO GENUINELY DIFFERENT toy heuristics standing in for two different LLMs. If they agree,
+# the read-back actually confirmed something; if not, it flags. (A single shared regex would
+# be a fake self-confirmation — the exact hole the independence gate closes.)
+_EX = re.compile(r"(\d+)\s+epochs?", re.IGNORECASE)        # "200 epochs"
+_RB = re.compile(r"epochs?\D{0,12}?(\d+)", re.IGNORECASE)   # "epochs ... 200"
 
 
 def toy_extractor(passage_text: str, field_name: str) -> str | None:
-    """Toy stand-in for the LLM extractor: first integer in the passage."""
-    m = _NUM.search(passage_text)
+    m = _EX.search(passage_text)
     return m.group(1) if m else None
 
 
 def toy_reader(verbatim: str, field_name: str) -> str | None:
-    """Toy read-back (pretend different model): same first-integer read."""
-    m = _NUM.search(verbatim)
+    m = _RB.search(verbatim)
     return m.group(1) if m else None
 
 
@@ -54,14 +57,17 @@ async def main() -> None:
     p = passages[0]
     print(f"top passage: {p.page_range}  ({len(p.verbatim_text)} chars cached)\n")
 
-    # EXTRACT (N-way agreement + read-back) — injected toy models
-    out = extract_field(p, "epochs", extractor=toy_extractor, reader=toy_reader, n=2)
+    # EXTRACT (N-way agreement + INDEPENDENT read-back) — two distinct toy "models"
+    out = extract_field(p, "epochs", extractor=toy_extractor, reader=toy_reader,
+                        extractor_id="toy-ex-A", reader_id="toy-rb-B", n=2)
     print("ExtractOutcome:")
     print(f"  value={out.value!r}  agreement={out.agreement}  runs={out.n_runs}")
-    print(f"  readback_ok={out.readback_ok}  verification_level={out.verification_level.value}\n")
+    print(f"  independent_readback={out.independent_readback}  readback_ok={out.readback_ok}")
+    print(f"  verification_level={out.verification_level.value}\n")
 
     if out.value is None:
-        print("toy extractor found no integer; pipeline still ran (flagged unverified).")
+        print("toy extractor found no '<N> epochs' pattern in top passage; pipeline still ran "
+              "(value None -> flagged unverified). Try another query/passage for a hit.")
         return
 
     # BUILD a card field from the extracted value + a real jumper
