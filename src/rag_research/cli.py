@@ -1,4 +1,4 @@
-"""rag_research command-line interface.
+"""RAG-Research command-line interface.
 
     rag-research verify <card.json> <code.py>
 
@@ -51,7 +51,7 @@ def _verify_cmd(card_path: str, code_path: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="rag_research", description=((__doc__ or "").splitlines() or [""])[0])
+    parser = argparse.ArgumentParser(prog="rag-research", description=((__doc__ or "").splitlines() or [""])[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
     pv = sub.add_parser("verify", help="verify a code file against a spec-card")
     pv.add_argument("card", help="path to a spec-card JSON file")
