@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from specrag.substrate import Substrate, make_jumper
+from rag_research.substrate import Substrate, make_jumper
 
 PDF = Path(__file__).parent / "test_papers" / "label_dropout_2403.07818.pdf"
 QUERIES = ["batch size used for training", "learning rate and optimizer", "dropout regularization"]
@@ -25,7 +25,7 @@ async def main() -> None:
 
     print(f"ingesting {PDF.name} ...")
     ref = await sub.ingest(str(PDF), paper_ref="labeldropout2024echo", citation="Label Dropout, arXiv:2403.07818")
-    print(f"  paper_ref = {ref}  (stable specrag id, NOT the PaperQA2 dockey)\n")
+    print(f"  paper_ref = {ref}  (stable rag_research id, NOT the PaperQA2 dockey)\n")
 
     for q in QUERIES:
         print(f"== query: {q!r} ==")

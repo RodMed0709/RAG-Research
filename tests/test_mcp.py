@@ -4,11 +4,11 @@ import pytest
 
 pytest.importorskip("fastmcp")
 
-from specrag import mcp_server  # noqa: E402
+from rag_research import mcp_server  # noqa: E402
 
 
 def test_server_builds():
-    assert mcp_server.mcp.name == "specrag"
+    assert mcp_server.mcp.name == "RAG-Research"
 
 
 def test_tools_registered_with_fastmcp():

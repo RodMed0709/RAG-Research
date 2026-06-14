@@ -1,4 +1,4 @@
-"""specrag — reproducibility-consistency verification for ML code, grounded in papers.
+"""rag_research — reproducibility-consistency verification for ML code, grounded in papers.
 
 The core (spec-cards + verify) is light and dependency-injected; the PaperQA2 substrate
 lives behind the ``[paperqa]`` extra.

@@ -8,7 +8,7 @@ Run:  python examples/run_stamp.py
 """
 from __future__ import annotations
 
-from specrag import (
+from rag_research import (
     Cat,
     LocatorKind,
     SpecCard,
@@ -19,7 +19,7 @@ from specrag import (
     check_stamp,
     generate_and_verify,
 )
-from specrag.speccard import Jumper
+from rag_research.speccard import Jumper
 
 
 def card(version: int, batch: int) -> SpecCard:

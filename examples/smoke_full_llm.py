@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from specrag import (
+from rag_research import (
     Cat,
     LocatorKind,
     SpecCard,
@@ -26,9 +26,9 @@ from specrag import (
     check_stamp,
     generate_and_verify,
 )
-from specrag.extract import extract_field
-from specrag.llm import load_env, make_extractor, make_generator, make_judge, make_locator, make_reader
-from specrag.substrate import Substrate, make_jumper
+from rag_research.extract import extract_field
+from rag_research.llm import load_env, make_extractor, make_generator, make_judge, make_locator, make_reader
+from rag_research.substrate import Substrate, make_jumper
 
 PDF = Path(__file__).parent / "test_papers" / "label_dropout_2403.07818.pdf"
 

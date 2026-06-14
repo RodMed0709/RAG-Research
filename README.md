@@ -1,8 +1,8 @@
 <div align="center">
 
-# specrag
+# RAG-Research
 
-### Your LLM keeps "reproducing" papers wrong. specrag catches it — line by line, traceable to the passage that says so.
+### Your LLM keeps "reproducing" papers wrong. RAG-Research catches it — line by line, traceable to the passage that says so.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
@@ -21,7 +21,7 @@ and you won't find out until a reviewer does.
 Here's the real problem: those norms never lived anywhere solid. They lived in the model's head —
 and the model's head resets every session.
 
-**specrag pins them down.** It reads the paper, turns each reproducibility rule into a typed,
+**RAG-Research pins them down.** It reads the paper, turns each reproducibility rule into a typed,
 verbatim-anchored *spec-card*, then checks your code against it — every constraint traceable to the
 exact passage that demands it. Hard numbers (`batch_size`, `lr`) are checked by **code, not
 vibes**. Only the genuinely fuzzy stuff — *did the augmentation run in the right phase?* — goes to
@@ -40,7 +40,7 @@ for x, y in train_loader:
 ```
 
 ```text
-$ specrag verify card.json train.py
+$ rag-research verify card.json train.py
   [ ok  ] batch_size         honored    via deterministic
   [BLOCK] intensity_jitter   violated   via llm        <- wrong phase. caught.
   BLOCKED (exit 2)
@@ -54,7 +54,7 @@ the train loop and blocked it). And every verdict points back to the verbatim li
 No. Those tell you *what the literature says*, or generate a reproduction *once*. None of them
 **stand guard over consistency** — that your code honors every norm, every time, traceably, and
 that it gets flagged the moment a re-read of the paper changes one. That's the gap nobody fills.
-That's specrag.
+That's RAG-Research.
 
 ## How it works
 
@@ -80,12 +80,12 @@ paper PDF ──▶ PaperQA2 substrate ──▶ verbatim passages
 ## 60-second start
 
 ```bash
-pip install "specrag[paperqa] @ git+https://github.com/RodMed0709/RAG-Research.git"
+pip install "rag-research[paperqa] @ git+https://github.com/RodMed0709/RAG-Research.git"
 
 # bring your own LLM key — DeepSeek by default, any LiteLLM model works
 echo "DEEPSEEK_API_KEY=sk-your-own-key" > .env
 
-specrag verify card.json train.py        # exit 0 ok · 1 ask a human · 2 blocked
+rag-research verify card.json train.py        # exit 0 ok · 1 ask a human · 2 blocked
 ```
 
 Retrieval runs **fully offline** on local embeddings. Only the semantic judge calls out — and it
@@ -93,12 +93,12 @@ calls *your* key, never a shipped one.
 
 ## Drop it into Claude Code
 
-specrag ships an MCP server, so your AI assistant can hand the grounded check to it (assistant
-orchestrates; specrag + your LLM do the verification):
+RAG-Research ships an MCP server, so your AI assistant can hand the grounded check to it (assistant
+orchestrates; RAG-Research + your LLM do the verification):
 
 ```bash
-pip install "specrag[mcp] @ git+https://github.com/RodMed0709/RAG-Research.git"
-claude mcp add RAG-Research -- python -m specrag.mcp_server
+pip install "rag-research[mcp] @ git+https://github.com/RodMed0709/RAG-Research.git"
+claude mcp add RAG-Research -- python -m rag_research.mcp_server
 ```
 
 Then just say: *"use RAG-Research to verify this against the card."* Tools: `verify_code_against_card`,

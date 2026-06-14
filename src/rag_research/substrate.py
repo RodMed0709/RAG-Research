@@ -4,7 +4,7 @@ Responsibilities: ingest PDFs, retrieve raw verbatim passages (no LLM synthesis)
 bridge a passage + a located value into a self-sufficient ``Jumper``. The verify core
 never imports this module — only the extraction/substrate path does.
 
-Identity rule (schema §1): the stable ``paper_ref`` is specrag's own (DOI or canonical
+Identity rule (schema §1): the stable ``paper_ref`` is rag_research's own (DOI or canonical
 slug), NEVER PaperQA2's ``dockey`` (an unstable md5 of file bytes). The dockey is kept
 on the jumper only as a mutable re-fetch handle.
 """
@@ -92,7 +92,7 @@ class Substrate:
         try:
             from paperqa import Docs, Settings
         except ImportError as e:  # pragma: no cover - exercised only without the extra
-            raise ImportError("Substrate needs the [paperqa] extra: pip install 'specrag[paperqa]'") from e
+            raise ImportError("Substrate needs the [paperqa] extra: pip install 'rag-research[paperqa]'") from e
         self._Settings = Settings
         self.docs = Docs()
         self.settings = settings if settings is not None else self._local_settings()

@@ -5,7 +5,7 @@ the injected `locate` does any normalization, e.g. per-GPU); SEMANTIC / FREEFORM
 fields are judged by the injected `judge` (the LLM in production). The 3 polarities
 and the flip-rate metric are the slice's success criteria.
 """
-from specrag import (
+from rag_research import (
     Cat,
     FieldVerdict,
     Jumper,

@@ -8,7 +8,7 @@ Run:  python examples/smoke_llm.py
 """
 from __future__ import annotations
 
-from specrag import (
+from rag_research import (
     Cat,
     LocatorKind,
     Phase,
@@ -18,10 +18,10 @@ from specrag import (
     VLevel,
     verify_field,
 )
-from specrag.extract import extract_field
-from specrag.llm import load_env, make_extractor, make_judge, make_locator, make_reader
-from specrag.speccard import Jumper
-from specrag.substrate import Passage
+from rag_research.extract import extract_field
+from rag_research.llm import load_env, make_extractor, make_judge, make_locator, make_reader
+from rag_research.speccard import Jumper
+from rag_research.substrate import Passage
 
 load_env()
 

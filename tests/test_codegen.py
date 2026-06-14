@@ -8,8 +8,8 @@ generator is an INJECTED callable (the LLM), so these run deterministically with
 import pytest
 from pydantic import ValidationError
 
-from specrag import Cat, LocatorKind, Phase, SpecCard, SpecField, State, ValueKind, ValueSpec
-from specrag.codegen import (
+from rag_research import Cat, LocatorKind, Phase, SpecCard, SpecField, State, ValueKind, ValueSpec
+from rag_research.codegen import (
     GenerationResult,
     Stamp,
     StaleReport,
@@ -17,7 +17,7 @@ from specrag.codegen import (
     generate_and_verify,
     make_stamp,
 )
-from specrag.speccard import Jumper
+from rag_research.speccard import Jumper
 
 
 def _jumper() -> Jumper:

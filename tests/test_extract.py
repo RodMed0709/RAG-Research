@@ -7,9 +7,9 @@ disagree), read-back from the isolated verbatim with a DIFFERENT reader, and the
 """
 import pytest
 
-from specrag import VLevel
-from specrag.extract import ExtractOutcome, extract_field, nway
-from specrag.substrate import Passage
+from rag_research import VLevel
+from rag_research.extract import ExtractOutcome, extract_field, nway
+from rag_research.substrate import Passage
 
 
 def _passage(text: str = "trained with a batch size of 8 per GPU") -> Passage:

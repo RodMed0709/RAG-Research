@@ -12,7 +12,7 @@ import json
 import re
 from pathlib import Path
 
-from specrag import SpecCard, State, flip_rate, verify_consistency
+from rag_research import SpecCard, State, flip_rate, verify_consistency
 
 CARD = Path(__file__).parent / "cards" / "zhou2023thyroid__MedSAM-ft.json"
 

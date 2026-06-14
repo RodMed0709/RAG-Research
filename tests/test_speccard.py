@@ -1,7 +1,7 @@
 """Contract tests for the spec-card schema (Phase 1, Tasks 1.1-1.4).
 
 These encode the hard rules from speccard_schema.md §7. Implementation in
-src/specrag/speccard.py must satisfy them.
+src/rag_research/speccard.py must satisfy them.
 """
 import json
 from pathlib import Path
@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from specrag import (
+from rag_research import (
     Cat,
     Jumper,
     LocatorKind,

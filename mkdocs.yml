@@ -1,6 +1,6 @@
-site_name: specrag
+site_name: RAG-Research
 site_description: Reproducibility-consistency verification for ML code, grounded in papers.
-repo_url: https://github.com/rmedina/specrag
+repo_url: https://github.com/RodMed0709/RAG-Research
 theme:
   name: material
   palette:

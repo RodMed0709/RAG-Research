@@ -14,7 +14,7 @@ import asyncio
 import re
 from pathlib import Path
 
-from specrag import (
+from rag_research import (
     Cat,
     LocatorKind,
     SpecCard,
@@ -24,8 +24,8 @@ from specrag import (
     ValueSpec,
     verify_consistency,
 )
-from specrag.extract import extract_field
-from specrag.substrate import Substrate, make_jumper
+from rag_research.extract import extract_field
+from rag_research.substrate import Substrate, make_jumper
 
 PDF = Path(__file__).parent / "test_papers" / "label_dropout_2403.07818.pdf"
 

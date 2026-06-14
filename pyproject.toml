@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "specrag"
+name = "rag-research"
 version = "0.0.1"
 description = "Reproducibility-consistency verification of ML code against papers — a grounded linter on top of PaperQA2."
 readme = "README.md"
@@ -36,18 +36,18 @@ mcp = ["fastmcp>=2.0"]
 api = ["fastapi>=0.110", "uvicorn>=0.29"]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4", "mypy>=1.10"]
 docs = ["mkdocs-material>=9.5"]
-all = ["specrag[paperqa,mcp,api,dev]"]
+all = ["rag-research[paperqa,mcp,api,dev]"]
 
 [project.urls]
-Homepage = "https://github.com/rmedina/specrag"
-Issues = "https://github.com/rmedina/specrag/issues"
+Homepage = "https://github.com/RodMed0709/RAG-Research"
+Issues = "https://github.com/RodMed0709/RAG-Research/issues"
 
 [project.scripts]
-specrag = "specrag.cli:main"
-specrag-mcp = "specrag.mcp_server:main"
+rag-research = "rag_research.cli:main"
+rag-research-mcp = "rag_research.mcp_server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/specrag"]
+packages = ["src/rag_research"]
 
 [tool.ruff]
 line-length = 100
@@ -61,5 +61,5 @@ asyncio_mode = "auto"
 
 [tool.mypy]
 python_version = "3.11"
-packages = ["specrag"]
+packages = ["rag_research"]
 strict = true

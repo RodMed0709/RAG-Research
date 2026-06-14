@@ -1,11 +1,11 @@
-"""specrag MCP server (the ``[mcp]`` extra).
+"""rag_research MCP server (the ``[mcp]`` extra).
 
-Lets another Claude Code session / agent use specrag as a grounded verification tool:
-Claude orchestrates, specrag (with DeepSeek inside) does the grounded, traceable check. The
+Lets another Claude Code session / agent use rag_research as a grounded verification tool:
+Claude orchestrates, rag_research (with DeepSeek inside) does the grounded, traceable check. The
 calling model never has to hold reproducibility norms in its volatile memory — it asks this
 tool, which compares against typed spec-cards.
 
-Run directly:  python -m specrag.mcp_server
+Run directly:  python -m rag_research.mcp_server
 Or register in an MCP client (e.g. Claude Code) pointing at that command. Needs the ``[mcp]``
 extra (fastmcp) and ``DEEPSEEK_API_KEY`` in the environment / a local ``.env``.
 """
@@ -19,7 +19,7 @@ from .codegen import Stamp, check_stamp
 from .speccard import SpecCard
 from .verify import FieldVerdict, verify_consistency
 
-mcp: FastMCP = FastMCP("specrag")
+mcp: FastMCP = FastMCP("RAG-Research")
 
 
 def _verdict_dict(v: FieldVerdict) -> dict[str, object]:

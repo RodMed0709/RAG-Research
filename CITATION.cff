@@ -1,10 +1,10 @@
 cff-version: 1.2.0
-message: "If you use specrag in your research, please cite it."
-title: "specrag: reproducibility-consistency verification for ML code, grounded in papers"
+message: "If you use RAG-Research in your research, please cite it."
+title: "RAG-Research: reproducibility-consistency verification for ML code, grounded in papers"
 authors:
   - family-names: Medina
     given-names: Rodrigo
-repository-code: "https://github.com/rmedina/specrag"
+repository-code: "https://github.com/RodMed0709/RAG-Research"
 license: Apache-2.0
 keywords:
   - reproducibility
@@ -17,5 +17,5 @@ references:
     title: "PaperQA2: Improved scientific question answering"
     authors:
       - name: "FutureHouse"
-    notes: "specrag is built on PaperQA2."
+    notes: "RAG-Research is built on PaperQA2."
     url: "https://arxiv.org/abs/2409.13740"

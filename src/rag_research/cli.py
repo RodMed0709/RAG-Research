@@ -1,10 +1,10 @@
-"""specrag command-line interface.
+"""rag_research command-line interface.
 
-    specrag verify <card.json> <code.py>
+    rag-research verify <card.json> <code.py>
 
 Loads a spec-card, reads a code file, and runs ``verify_consistency`` using DeepSeek (via
 ``.env``) as the semantic judge and the code-value locator. Exit code: 0 = OK, 1 = held for
-human, 2 = blocked. The card identity/version stays specrag's; the LLM only locates & judges.
+human, 2 = blocked. The card identity/version stays rag_research's; the LLM only locates & judges.
 """
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ def _verify_cmd(card_path: str, code_path: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="specrag", description=((__doc__ or "").splitlines() or [""])[0])
+    parser = argparse.ArgumentParser(prog="rag_research", description=((__doc__ or "").splitlines() or [""])[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
     pv = sub.add_parser("verify", help="verify a code file against a spec-card")
     pv.add_argument("card", help="path to a spec-card JSON file")

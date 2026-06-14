@@ -3,7 +3,7 @@
 The live Substrate class (ingest/retrieve) is exercised by the smoke script against real
 PDFs; here we lock the deterministic helpers.
 """
-from specrag.substrate import Passage, make_jumper, parse_page_range, slugify_ref
+from rag_research.substrate import Passage, make_jumper, parse_page_range, slugify_ref
 
 
 def test_parse_page_range_pdf():

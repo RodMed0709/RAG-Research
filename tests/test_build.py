@@ -6,9 +6,9 @@ float compare.
 """
 import pytest
 
-from specrag import Cat, LocatorKind, Phase, ValueKind, VLevel
-from specrag.build import build_field, build_value_spec
-from specrag.speccard import Jumper
+from rag_research import Cat, LocatorKind, Phase, ValueKind, VLevel
+from rag_research.build import build_field, build_value_spec
+from rag_research.speccard import Jumper
 
 
 def _jumper() -> Jumper:

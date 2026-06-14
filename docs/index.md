@@ -1,8 +1,8 @@
-# specrag
+# RAG-Research
 
 **Reproducibility-consistency verification for ML code, grounded in papers.**
 
-specrag answers a question existing tools don't: *does my generated code honor ALL the
+RAG-Research answers a question existing tools don't: *does my generated code honor ALL the
 reproducibility norms of these papers, consistently, with every constraint traceable to a
 verified verbatim passage?*
 
@@ -42,9 +42,9 @@ paper PDF ──▶ substrate (PaperQA2)  ──▶ verbatim passages
 ## Install & use
 
 ```bash
-pip install "specrag[paperqa]"     # engine + PaperQA2 substrate
+pip install "rag-research[paperqa]"     # engine + PaperQA2 substrate
 # set DEEPSEEK_API_KEY in a .env file (the LLM is injected; a DeepSeek adapter ships)
-specrag verify card.json train.py
+rag-research verify card.json train.py
 ```
 
 ## Built on

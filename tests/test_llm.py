@@ -5,8 +5,8 @@ these functions had zero tests. These lock the fail-safe behavior.
 """
 import os
 
-from specrag.llm import _clean_value, _parse_state, load_env
-from specrag.speccard import State
+from rag_research.llm import _clean_value, _parse_state, load_env
+from rag_research.speccard import State
 
 
 def test_parse_state_exact():

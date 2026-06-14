@@ -6,7 +6,7 @@ generate_and_verify -> check_stamp. If a type stops lining up between modules, t
 """
 import re
 
-from specrag import (
+from rag_research import (
     Cat,
     LocatorKind,
     SpecCard,
@@ -17,8 +17,8 @@ from specrag import (
     generate_and_verify,
     verify_consistency,
 )
-from specrag.extract import extract_field
-from specrag.substrate import Passage, make_jumper
+from rag_research.extract import extract_field
+from rag_research.substrate import Passage, make_jumper
 
 
 def locate_batch(field, code):
