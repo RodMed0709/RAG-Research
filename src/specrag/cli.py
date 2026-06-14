@@ -9,21 +9,27 @@ human, 2 = blocked. The card identity/version stays specrag's; the LLM only loca
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
+
+from pydantic import ValidationError
 
 from .speccard import SpecCard
 from .verify import verify_consistency
 
 
 def _verify_cmd(card_path: str, code_path: str) -> int:
-    card = SpecCard.model_validate_json(Path(card_path).read_text(encoding="utf-8"))
-    code = Path(code_path).read_text(encoding="utf-8")
+    try:
+        card = SpecCard.model_validate_json(Path(card_path).read_text(encoding="utf-8"))
+        code = Path(code_path).read_text(encoding="utf-8")
+    except (OSError, ValidationError) as e:
+        print(f"error: could not load inputs: {e}", file=sys.stderr)
+        return 3
 
     from .llm import load_env, make_judge, make_locator
 
     load_env()
-    import os
 
     if not os.environ.get("DEEPSEEK_API_KEY"):
         print("error: DEEPSEEK_API_KEY not set (put it in .env or the environment).", file=sys.stderr)
@@ -45,7 +51,7 @@ def _verify_cmd(card_path: str, code_path: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="specrag", description=(__doc__ or "").splitlines()[0])
+    parser = argparse.ArgumentParser(prog="specrag", description=((__doc__ or "").splitlines() or [""])[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
     pv = sub.add_parser("verify", help="verify a code file against a spec-card")
     pv.add_argument("card", help="path to a spec-card JSON file")

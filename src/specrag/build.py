@@ -7,7 +7,11 @@ LOUD on un-parseable numerics and refuses to build a float field without a toler
 """
 from __future__ import annotations
 
+import re
+
 from .speccard import Cat, Jumper, LocatorKind, Phase, SpecField, ValueKind, ValueSpec, VLevel
+
+_INT_RE = re.compile(r"[+-]?\d+$")
 
 
 def build_value_spec(
@@ -23,10 +27,20 @@ def build_value_spec(
     if value_kind == ValueKind.NUMERIC:
         if value is None:
             raise ValueError("numeric field requires a value, got None")
-        looks_float = "." in value or "e" in value.lower()
-        if looks_float or atol is not None or rtol is not None:
+        v = value.strip()
+        force_float = "." in v or atol is not None or rtol is not None
+        # scientific notation that is integral (1e5, 2E4) -> int, unless a tolerance is asked
+        if "e" in v.lower() and not force_float:
             try:
-                num = float(value)
+                f = float(v)
+            except ValueError as e:
+                raise ValueError(f"cannot parse numeric value {value!r}") from e
+            if f.is_integer():
+                return ValueSpec(kind=ValueKind.NUMERIC, equals=int(f))
+            force_float = True
+        if force_float:
+            try:
+                num = float(v)
             except ValueError as e:
                 raise ValueError(f"cannot parse numeric value {value!r}") from e
             if atol is None and rtol is None:
@@ -34,10 +48,9 @@ def build_value_spec(
                     f"float value {value!r} requires atol or rtol (no silent exact float compare)"
                 )
             return ValueSpec(kind=ValueKind.NUMERIC, equals=num, atol=atol, rtol=rtol)
-        try:
-            return ValueSpec(kind=ValueKind.NUMERIC, equals=int(value))
-        except ValueError as e:
-            raise ValueError(f"cannot parse integer value {value!r}") from e
+        if not _INT_RE.match(v):  # reject '1_000', '1,000', 'eight' loudly
+            raise ValueError(f"cannot parse integer value {value!r}")
+        return ValueSpec(kind=ValueKind.NUMERIC, equals=int(v))
 
     if value_kind == ValueKind.ENUM:
         if value is None:

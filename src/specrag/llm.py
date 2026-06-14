@@ -8,6 +8,7 @@ means no test or core import depends on a network call — they inject fakes ins
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 from .codegen import Generator
@@ -28,10 +29,13 @@ def load_env(path: str | os.PathLike[str] = ".env") -> None:
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
             k, v = line.split("=", 1)
-            os.environ.setdefault(k.strip(), v.strip())
+            os.environ.setdefault(k.strip(), v.strip().strip("\"'"))
 
 
-def _complete(system: str, user: str, *, model: str, max_tokens: int = 64, temperature: float = 0.0) -> str:
+def _complete(
+    system: str, user: str, *, model: str, max_tokens: int = 64,
+    temperature: float = 0.0, timeout: float = 30.0,
+) -> str:
     import litellm  # lazy: only imported when a real adapter actually runs
 
     resp = litellm.completion(
@@ -39,6 +43,7 @@ def _complete(system: str, user: str, *, model: str, max_tokens: int = 64, tempe
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
         max_tokens=max_tokens,
         temperature=temperature,
+        timeout=timeout,
     )
     return (resp.choices[0].message.content or "").strip()
 
@@ -60,17 +65,22 @@ def _field_brief(field: SpecField) -> str:
 
 
 def _clean_value(out: str) -> str | None:
-    if not out or out.strip().upper().startswith("NONE"):
+    # strip the WHOLE reply, not .split()[0] — keep multi-word values ("zero mean unit variance")
+    s = out.strip().strip(" .,;:'\"`")
+    if not s or s.upper().startswith("NONE"):
         return None
-    return out.split()[0].strip(" .,;:'\"`")
+    return s
 
 
 def _parse_state(text: str) -> State:
-    up = text.strip().upper()
-    for name, state in _STATE_BY_NAME.items():
-        if name in up:
-            return state
-    return State.AMBIGUOUS
+    """Map an LLM reply to a State, failing SAFE. Exact match wins; otherwise a single
+    word-boundary state token wins; zero or MULTIPLE distinct tokens -> AMBIGUOUS (human
+    queue). This refuses to read 'HONORED but actually VIOLATED' as HONORED."""
+    up = text.strip().upper().strip(".")
+    if up in _STATE_BY_NAME:
+        return _STATE_BY_NAME[up]
+    hits = {st for name, st in _STATE_BY_NAME.items() if re.search(rf"\b{name}\b", up)}
+    return next(iter(hits)) if len(hits) == 1 else State.AMBIGUOUS
 
 
 def make_judge(model: str = DEEPSEEK) -> Judge:

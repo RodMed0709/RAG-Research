@@ -39,6 +39,25 @@ def test_build_numeric_unparseable_raises_loud():
         build_value_spec("eight", ValueKind.NUMERIC)
 
 
+def test_build_sci_notation_integer_is_int():
+    vs = build_value_spec("1e5", ValueKind.NUMERIC)
+    assert vs.equals == 100000
+    assert isinstance(vs.equals, int)
+    assert build_value_spec("2E4", ValueKind.NUMERIC).equals == 20000
+
+
+def test_build_signed_int():
+    assert build_value_spec("-1", ValueKind.NUMERIC).equals == -1
+    assert build_value_spec("+8", ValueKind.NUMERIC).equals == 8
+
+
+def test_build_rejects_underscore_and_comma():
+    with pytest.raises(ValueError):
+        build_value_spec("1_000", ValueKind.NUMERIC)
+    with pytest.raises(ValueError):
+        build_value_spec("1,000", ValueKind.NUMERIC)
+
+
 def test_build_numeric_none_raises():
     with pytest.raises(ValueError):
         build_value_spec(None, ValueKind.NUMERIC)
