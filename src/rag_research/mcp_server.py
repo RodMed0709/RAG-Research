@@ -20,8 +20,16 @@ import json
 from .claim import Claim, ClaimCard
 from .claimverify import verify_claimcard
 from .codegen import Stamp, check_stamp
+from .consistency import (
+    Finding,
+    confusion_matrix_check,
+    detect_missing_sections,
+    detect_terminology_variants,
+    render_review,
+)
 from .litreview import Ficha, NoveltyProfile
 from .litreview import tier_papers as _tier_papers
+from .references import build_bibliography, detect_missing_citations
 from .report import render_reporte, render_v2
 from .speccard import SpecCard
 from .verify import FieldVerdict, verify_consistency
@@ -199,6 +207,52 @@ def render_report(profile_json: str, fichas_json: str, kind: str = "full") -> di
     fichas = _parse_fichas(fichas_json)
     md = render_v2(profile, fichas) if kind == "v2" else render_reporte(profile, fichas)
     return {"kind": kind, "markdown": md}
+
+
+@mcp.tool
+def check_consistency(config_json: str) -> dict[str, object]:
+    """Run deterministic internal-consistency checks on a manuscript and return findings +
+    a rendered REVIEW.md. ``config_json`` keys (all optional):
+    ``text`` + ``terminology_groups`` (list of equivalent-spelling groups) for terminology;
+    ``confusion`` ({tp,fp,fn,tn}) + ``claimed_metrics`` ({recall,precision,accuracy}) for the
+    metric recompute; ``sections_present`` + ``sections_required`` for structure. No LLM.
+    """
+    cfg = json.loads(config_json)
+    findings: list[Finding] = []
+    text = cfg.get("text")
+    groups = cfg.get("terminology_groups")
+    if text is not None and groups:
+        findings += detect_terminology_variants(text, groups)
+    cm = cfg.get("confusion")
+    claimed = cfg.get("claimed_metrics")
+    if cm and claimed:
+        findings += confusion_matrix_check(
+            int(cm["tp"]), int(cm["fp"]), int(cm["fn"]), int(cm["tn"]), claimed,
+            atol=float(cfg.get("atol", 0.01)),
+        )
+    present = cfg.get("sections_present")
+    required = cfg.get("sections_required")
+    if present is not None and required:
+        findings += detect_missing_sections(present, required)
+
+    return {
+        "count": len(findings),
+        "findings": [f.model_dump(mode="json") for f in findings],
+        "review_md": render_review(findings, title=cfg.get("title", "Revisión de consistencia")),
+    }
+
+
+@mcp.tool
+def build_bibliography_tool(fichas_json: str, cited_refs: list[str] | None = None) -> dict[str, object]:
+    """Build a BibTeX bibliography from fichas, and (if ``cited_refs`` is given — the
+    references the manuscript already cites) flag the T1/T2 papers still missing a citation.
+    """
+    fichas = _parse_fichas(fichas_json)
+    missing = detect_missing_citations(cited_refs, fichas) if cited_refs is not None else []
+    return {
+        "bibtex": build_bibliography(fichas),
+        "missing_citations": [m.model_dump(mode="json") for m in missing],
+    }
 
 
 def main() -> None:

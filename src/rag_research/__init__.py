@@ -47,6 +47,15 @@ from .litreview import (
     tier_papers,
 )
 from .report import render_reporte, render_v2
+from .consistency import (
+    Finding,
+    Severity,
+    confusion_matrix_check,
+    detect_missing_sections,
+    detect_terminology_variants,
+    render_review,
+)
+from .references import build_bibliography, detect_missing_citations, ficha_to_bibtex
 
 __version__ = "0.0.1"
 
@@ -91,4 +100,13 @@ __all__ = [
     "dedup_fichas",
     "render_reporte",
     "render_v2",
+    "Severity",
+    "Finding",
+    "detect_terminology_variants",
+    "confusion_matrix_check",
+    "detect_missing_sections",
+    "render_review",
+    "ficha_to_bibtex",
+    "build_bibliography",
+    "detect_missing_citations",
 ]
