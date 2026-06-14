@@ -56,6 +56,12 @@ from .consistency import (
     render_review,
 )
 from .references import build_bibliography, detect_missing_citations, ficha_to_bibtex
+from .delivery import (
+    TrackedChange,
+    latex_tracked,
+    render_latex_changes,
+    render_tracked_changes,
+)
 
 __version__ = "0.0.1"
 
@@ -109,4 +115,8 @@ __all__ = [
     "ficha_to_bibtex",
     "build_bibliography",
     "detect_missing_citations",
+    "TrackedChange",
+    "render_tracked_changes",
+    "render_latex_changes",
+    "latex_tracked",
 ]

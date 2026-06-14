@@ -29,8 +29,13 @@ from .consistency import (
 )
 from .litreview import Ficha, NoveltyProfile
 from .litreview import tier_papers as _tier_papers
+from .delivery import (
+    TrackedChange,
+    render_latex_changes,
+    render_tracked_changes,
+)
 from .references import build_bibliography, detect_missing_citations
-from .report import render_reporte, render_v2
+from .report import md_to_docx, render_reporte, render_v2
 from .speccard import SpecCard
 from .verify import FieldVerdict, verify_consistency
 
@@ -253,6 +258,27 @@ def build_bibliography_tool(fichas_json: str, cited_refs: list[str] | None = Non
         "bibtex": build_bibliography(fichas),
         "missing_citations": [m.model_dump(mode="json") for m in missing],
     }
+
+
+@mcp.tool
+def render_changes(changes_json: str, title: str = "Cambios marcados") -> dict[str, object]:
+    """Render tracked changes for the reviewer hand-off. ``changes_json`` is a JSON array of
+    {before, after, reason, location?}. Returns ``markdown`` (CAMBIOS_MARCADOS.md, ❌/✅/💡)
+    and ``latex`` (inline tracked-change markup ready to paste into an Overleaf project).
+    """
+    changes = [TrackedChange.model_validate(x) for x in json.loads(changes_json)]
+    return {
+        "markdown": render_tracked_changes(changes, title=title),
+        "latex": render_latex_changes(changes),
+    }
+
+
+@mcp.tool
+def export_docx(markdown: str, out_path: str) -> dict[str, object]:
+    """Export a Markdown string to a .docx file at ``out_path`` (needs python-docx). Use for
+    REPORTE / REVIEW / CAMBIOS_MARCADOS Word deliverables. Returns the written path."""
+    path = md_to_docx(markdown, out_path)
+    return {"path": path}
 
 
 def main() -> None:
