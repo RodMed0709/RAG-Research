@@ -15,6 +15,8 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
+from .claim import Claim, ClaimCard
+from .claimverify import verify_claimcard
 from .codegen import Stamp, check_stamp
 from .speccard import SpecCard
 from .verify import FieldVerdict, verify_consistency
@@ -91,6 +93,72 @@ def check_code_stamp(stamp_json: str, current_card_json: str) -> dict[str, objec
     card = SpecCard.model_validate_json(current_card_json)
     report = check_stamp(stamp, card)
     return {"stale": report.stale, "reason": report.reason, "changed_fields": report.changed_fields}
+
+
+def _claim_dict(c: Claim) -> dict[str, object]:
+    return {
+        "claim_id": c.claim_id,
+        "text": c.text,
+        "kind": c.kind.value,
+        "verdict": c.verdict.value if c.verdict is not None else None,
+        "location": c.location,
+        "evidence": [
+            {
+                "anchor_phrase": j.anchor_phrase,
+                "verbatim_text": j.verbatim_text,
+                "page_range": j.page_range,
+            }
+            for j in c.evidence
+        ],
+    }
+
+
+@mcp.tool
+async def verify_claim_against_corpus(
+    claim_card_json: str, corpus_paths: list[str], k: int = 8
+) -> dict[str, object]:
+    """Verify a claim-card (manuscript assertions, JSON) against a corpus of source PDFs.
+
+    Each claim is checked against verbatim passages retrieved from the corpus: NUMERIC /
+    COMPARATIVE claims are compared DETERMINISTICALLY, the rest judged by the LLM grounded
+    ONLY in the passages. A claim is HONORED only if it carries a verbatim anchor; otherwise
+    it is UNSUPPORTED — the anti-hallucination signal. Returns per-claim verdicts with
+    evidence and a summary. Needs the ``[paperqa]`` extra and ``DEEPSEEK_API_KEY``.
+    """
+    from .llm import make_claim_extractor, make_claim_judge
+    from .substrate import Substrate
+
+    _load_keys()
+    card = ClaimCard.model_validate_json(claim_card_json)
+    sub = Substrate()
+    for path in corpus_paths:
+        await sub.ingest(path)
+
+    # Pre-retrieve per claim so verify_claim can stay synchronous (mirrors verify.py).
+    cache: dict[str, list[object]] = {}
+    for claim in card.claims:
+        cache[claim.text] = await sub.retrieve(claim.text, k)
+
+    def retrieve(query: str, _k: int) -> list[object]:
+        return cache.get(query, [])  # type: ignore[return-value]
+
+    verify_claimcard(
+        card, retrieve=retrieve, judge=make_claim_judge(), extractor=make_claim_extractor(), k=k
+    )
+
+    verdicts = [c.verdict.value if c.verdict is not None else "none" for c in card.claims]
+    summary = {
+        "honored": verdicts.count("honored"),
+        "contradicted": verdicts.count("contradicted"),
+        "unsupported": verdicts.count("unsupported"),
+        "ambiguous": verdicts.count("ambiguous"),
+    }
+    return {
+        "card_id": card.card_id,
+        "manuscript_ref": card.manuscript_ref,
+        "summary": summary,
+        "claims": [_claim_dict(c) for c in card.claims],
+    }
 
 
 def main() -> None:

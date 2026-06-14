@@ -34,6 +34,8 @@ from .codegen import (
     make_stamp,
 )
 from .build import build_field, build_value_spec
+from .claim import Claim, ClaimCard, ClaimKind, ClaimVerdict
+from .claimverify import verify_claim, verify_claimcard
 
 __version__ = "0.0.1"
 
@@ -62,4 +64,10 @@ __all__ = [
     "generate_and_verify",
     "build_value_spec",
     "build_field",
+    "Claim",
+    "ClaimCard",
+    "ClaimKind",
+    "ClaimVerdict",
+    "verify_claim",
+    "verify_claimcard",
 ]
