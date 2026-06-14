@@ -28,13 +28,12 @@ pip install "specrag[paperqa]"      # + PaperQA2 substrate (PDF ingest, retrieva
 ```
 
 The engine takes the LLM as an injected callable. `specrag.llm` ships a DeepSeek adapter
-(via LiteLLM); set `DEEPSEEK_API_KEY` in a `.env` file. An MCP server and a REST face are
-planned, not yet implemented.
+(via LiteLLM); set `DEEPSEEK_API_KEY` in a `.env` file. A REST face is planned, not yet built.
 
 ## Usage
 
-Verify a code file against a (hand-authored or extracted) spec-card, using DeepSeek as the
-semantic judge and code-value locator:
+**CLI** — verify a code file against a (hand-authored or extracted) spec-card, using DeepSeek
+as the semantic judge and code-value locator:
 
 ```bash
 specrag verify card.json train.py
@@ -42,16 +41,23 @@ specrag verify card.json train.py
 
 Per-field verdicts print with a `BLOCK` / `HUMAN` / `ok` marker; exit code is `0` (ok),
 `1` (held for human), or `2` (blocked). Hard fields are compared deterministically; only
-semantic fields go to the LLM. See `examples/` for runnable demos (`run_slice.py`,
-`smoke_substrate.py`, `smoke_extract.py`, `smoke_llm.py`, `run_stamp.py`).
+semantic fields go to the LLM.
+
+**MCP server** — `pip install "specrag[mcp]"`, then run `specrag-mcp` (or `python -m
+specrag.mcp_server`) and register it with an MCP client (e.g. Claude Code). It exposes
+`verify_code_against_card`, `verify_file_against_card`, and `check_code_stamp`, so an
+orchestrating model can offload grounded verification to specrag (which uses DeepSeek inside).
+
+See `examples/` for runnable demos (`run_slice.py`, `smoke_substrate.py`, `smoke_extract.py`,
+`smoke_llm.py`, `run_stamp.py`).
 
 ## Status
 
 Working today: the verify engine (5-state per-field checklist, deterministic hard-field
 compare, moat-critical human-escalation), the PaperQA2 substrate (offline local-embedding
 retrieval), card extraction with N-way agreement + independent read-back, the version stamp,
-the typed card-builder, real DeepSeek adapters, and a CLI. Not yet: MCP/REST faces, image
-equation handling, conditional (`applies_when`) verify logic.
+the typed card-builder, real DeepSeek adapters, a CLI, and an MCP server. Not yet: REST face,
+image equation handling, conditional (`applies_when`) verify logic.
 
 ## License
 

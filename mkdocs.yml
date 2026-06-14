@@ -1,0 +1,22 @@
+site_name: specrag
+site_description: Reproducibility-consistency verification for ML code, grounded in papers.
+repo_url: https://github.com/rmedina/specrag
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+  features:
+    - content.code.copy
+
+nav:
+  - Home: index.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+# keep internal planning docs out of the published site
+exclude_docs: |
+  superpowers/
