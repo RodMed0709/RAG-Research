@@ -131,6 +131,16 @@ class SpecCard(BaseModel):
     fields: list[SpecField]
     source_meta: SourceMeta | None = None
 
+    @model_validator(mode="after")
+    def _unique_field_names(self) -> SpecCard:
+        # The stamp and verdicts key by field name; duplicates would silently collapse and
+        # hide drift. Forbid them.
+        names = [f.name for f in self.fields]
+        dupes = sorted({n for n in names if names.count(n) > 1})
+        if dupes:
+            raise ValueError(f"duplicate field names in card: {dupes}")
+        return self
+
     def verification_summary(self) -> dict[str, object]:
         """Non-blocking rollup. The real blocking decision is per-field, not per-card."""
         counts = {VLevel.HUMAN: 0, VLevel.SELF: 0, VLevel.UNVERIFIED: 0}

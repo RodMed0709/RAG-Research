@@ -5,7 +5,10 @@ which card version it was validated against; if the card is re-extracted and a v
 changes, previously generated code is flagged STALE instead of drifting silently. The code
 generator is an INJECTED callable (the LLM), so these run deterministically with fakes.
 """
-from specrag import Cat, LocatorKind, SpecCard, SpecField, State, ValueKind, ValueSpec
+import pytest
+from pydantic import ValidationError
+
+from specrag import Cat, LocatorKind, Phase, SpecCard, SpecField, State, ValueKind, ValueSpec
 from specrag.codegen import (
     GenerationResult,
     Stamp,
@@ -77,6 +80,64 @@ def test_stamp_stale_on_value_change_even_if_version_not_bumped():
     s = make_stamp(_card(version=1, batch=8))
     report = check_stamp(s, _card(version=1, batch=16))
     assert report.stale is True
+
+
+def _aug_card(version: int, phase: Phase) -> SpecCard:
+    return SpecCard(
+        card_id="p::m", paper_ref="p", method="m", version=version,
+        fields=[SpecField(
+            name="jitter", category=Cat.AUGMENTATION, value_kind=ValueKind.ENUM,
+            locator_kind=LocatorKind.SEMANTIC,
+            value_spec=ValueSpec(kind=ValueKind.ENUM, equals="jitter"), phase=phase,
+            jumper=_jumper(),
+        )],
+    )
+
+
+def test_stamp_stale_on_phase_change_even_with_same_value():
+    # the jitter bug: phase train -> eval, same value, same version -> MUST be stale
+    s = make_stamp(_aug_card(version=1, phase=Phase.TRAIN))
+    report = check_stamp(s, _aug_card(version=1, phase=Phase.EVAL))
+    assert report.stale is True
+    assert "jitter" in report.changed_fields
+
+
+def _two_field_card() -> SpecCard:
+    base = _card(version=1, batch=8)
+    extra = SpecField(
+        name="lr", category=Cat.HYPERPARAMETER, value_kind=ValueKind.NUMERIC,
+        locator_kind=LocatorKind.LITERAL, value_spec=ValueSpec(kind=ValueKind.NUMERIC, equals=1),
+        jumper=_jumper(),
+    )
+    return SpecCard(card_id="p::m", paper_ref="p", method="m", version=1, fields=[*base.fields, extra])
+
+
+def test_stamp_stale_on_added_field():
+    s = make_stamp(_card(version=1, batch=8))  # only batch_size
+    report = check_stamp(s, _two_field_card())  # lr added
+    assert report.stale is True
+    assert "lr" in report.changed_fields
+
+
+def test_stamp_stale_on_removed_field():
+    s = make_stamp(_two_field_card())  # batch_size + lr
+    report = check_stamp(s, _card(version=1, batch=8))  # lr removed
+    assert report.stale is True
+    assert "lr" in report.changed_fields
+
+
+def test_duplicate_field_names_rejected():
+    with pytest.raises(ValidationError):
+        SpecCard(card_id="p::m", paper_ref="p", method="m",
+                 fields=[*_card().fields, *_card().fields])  # two batch_size fields
+
+
+def test_stamp_records_blocked_when_generated_code_violates():
+    card = _card(batch=8)
+    result = generate_and_verify(card, generator=lambda c: "batch_size = 16\n",
+                                 locate=locate_batch, judge=judge_noop)
+    assert result.blocked is True
+    assert result.stamp.generated_blocked is True  # the stamp carries the truth, not a clean "fresh"
 
 
 # --- generate + verify + stamp bundle ---
