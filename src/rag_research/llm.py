@@ -11,6 +11,8 @@ import os
 import re
 from pathlib import Path
 
+from .claim import ClaimVerdict
+from .claimverify import ClaimExtractor, ClaimJudge
 from .codegen import Generator
 from .extract import Extractor, ReadBack
 from .speccard import SpecCard, SpecField, State
@@ -18,6 +20,7 @@ from .verify import Judge, Locator
 
 DEEPSEEK = "deepseek/deepseek-chat"
 _STATE_BY_NAME = {s.name: s for s in State}
+_VERDICT_BY_NAME = {v.name: v for v in ClaimVerdict}
 
 
 def load_env(path: str | os.PathLike[str] = ".env") -> None:
@@ -144,6 +147,63 @@ def make_locator(model: str = DEEPSEEK) -> Locator:
         return _clean_value(_complete(system, user, model=model, max_tokens=16))
 
     return locator
+
+
+def _parse_verdict(text: str) -> ClaimVerdict:
+    """Map an LLM reply to a ClaimVerdict, failing SAFE to AMBIGUOUS (human queue). Exact
+    match wins; else a single word-boundary token wins; zero or multiple -> AMBIGUOUS."""
+    up = text.strip().upper().strip(".")
+    if up in _VERDICT_BY_NAME:
+        return _VERDICT_BY_NAME[up]
+    # A negated reply ("NOT HONORED") would single-token-match HONORED; fail SAFE instead.
+    if re.search(r"\b(NOT|NO|N'T)\b", up):
+        return ClaimVerdict.AMBIGUOUS
+    hits = {v for name, v in _VERDICT_BY_NAME.items() if re.search(rf"\b{name}\b", up)}
+    return next(iter(hits)) if len(hits) == 1 else ClaimVerdict.AMBIGUOUS
+
+
+def _passages_block(passage_texts: list[str], *, limit: int = 6) -> str:
+    return "\n\n".join(f"[P{i + 1}] {t}" for i, t in enumerate(passage_texts[:limit]))
+
+
+def make_claim_judge(model: str = DEEPSEEK) -> ClaimJudge:
+    """Judge a freeform manuscript claim against retrieved source passages. The verdict is
+    grounded ONLY in the passages — no outside knowledge — so an unsupported claim cannot be
+    rescued by the model's priors (that is the anti-hallucination point)."""
+    def judge(claim_text: str, passage_texts: list[str]) -> ClaimVerdict:
+        system = (
+            "You verify ONE claim from a paper against retrieved source passages. Use ONLY the "
+            "passages, never outside knowledge. Reply with exactly one word:\n"
+            "HONORED = a passage clearly supports the claim.\n"
+            "CONTRADICTED = a passage clearly states the opposite.\n"
+            "UNSUPPORTED = the passages do not address the claim (do NOT guess from priors).\n"
+            "AMBIGUOUS = passages are mixed or unclear."
+        )
+        user = (
+            f"Claim:\n{claim_text}\n\nSource passages:\n{_passages_block(passage_texts)}"
+            "\n\nVerdict (one word):"
+        )
+        return _parse_verdict(_complete(system, user, model=model, max_tokens=8))
+
+    return judge
+
+
+def make_claim_extractor(model: str = DEEPSEEK) -> ClaimExtractor:
+    """Extract, from the passages, the value the SOURCES report for a numeric/comparative
+    claim — so a deterministic compare can decide it. Returns the bare value or None."""
+    def extractor(claim_text: str, passage_texts: list[str]) -> str | None:
+        system = (
+            "From the source passages, output ONLY the numeric value (or enum value) the "
+            "SOURCES report for the quantity in the claim — a bare number/string, normalized, "
+            "no units. Output NONE if the passages do not state it. Use ONLY the passages."
+        )
+        user = (
+            f"Claim:\n{claim_text}\n\nSource passages:\n{_passages_block(passage_texts)}"
+            "\n\nReported value:"
+        )
+        return _clean_value(_complete(system, user, model=model, max_tokens=16))
+
+    return extractor
 
 
 def make_generator(model: str = DEEPSEEK) -> Generator:

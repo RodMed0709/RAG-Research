@@ -34,6 +34,34 @@ from .codegen import (
     make_stamp,
 )
 from .build import build_field, build_value_spec
+from .claim import Claim, ClaimCard, ClaimKind, ClaimVerdict
+from .claimverify import verify_claim, verify_claimcard
+from .litreview import (
+    Axis,
+    AxisRole,
+    Ficha,
+    NoveltyProfile,
+    Threat,
+    Tier,
+    dedup_fichas,
+    tier_papers,
+)
+from .report import render_reporte, render_v2
+from .consistency import (
+    Finding,
+    Severity,
+    confusion_matrix_check,
+    detect_missing_sections,
+    detect_terminology_variants,
+    render_review,
+)
+from .references import build_bibliography, detect_missing_citations, ficha_to_bibtex
+from .delivery import (
+    TrackedChange,
+    latex_tracked,
+    render_latex_changes,
+    render_tracked_changes,
+)
 
 __version__ = "0.0.1"
 
@@ -62,4 +90,33 @@ __all__ = [
     "generate_and_verify",
     "build_value_spec",
     "build_field",
+    "Claim",
+    "ClaimCard",
+    "ClaimKind",
+    "ClaimVerdict",
+    "verify_claim",
+    "verify_claimcard",
+    "Axis",
+    "AxisRole",
+    "Tier",
+    "Threat",
+    "NoveltyProfile",
+    "Ficha",
+    "tier_papers",
+    "dedup_fichas",
+    "render_reporte",
+    "render_v2",
+    "Severity",
+    "Finding",
+    "detect_terminology_variants",
+    "confusion_matrix_check",
+    "detect_missing_sections",
+    "render_review",
+    "ficha_to_bibtex",
+    "build_bibliography",
+    "detect_missing_citations",
+    "TrackedChange",
+    "render_tracked_changes",
+    "render_latex_changes",
+    "latex_tracked",
 ]
