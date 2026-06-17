@@ -7,7 +7,7 @@ from rag_research.speccard import ValueKind, ValueSpec
 def _numeric_claim(cid: str = "c1") -> Claim:
     return Claim(
         claim_id=cid,
-        text="lesion detection affects 70 million people",
+        text="the condition affects 70 million people",
         kind=ClaimKind.NUMERIC_FACT,
         value_spec=ValueSpec(kind=ValueKind.NUMERIC, equals=70_000_000),
     )

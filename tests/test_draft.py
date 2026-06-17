@@ -54,7 +54,7 @@ def test_anchored_when_supported():
 # ---- polarity 2: no passages -> NO_EVIDENCE, never invents ----
 def test_no_evidence_when_corpus_silent():
     card = draft_bullet(
-        "Quantum lesion detection detection is solved",
+        "Quantum disease detection is solved",
         retrieve=_retrieve_empty,
         write=_write_echo,
         judge=_judge_const(ClaimVerdict.HONORED),

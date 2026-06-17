@@ -3,7 +3,7 @@
 The literature-search and ficha-writing happen in the agentic layer (web search is not an
 MCP tool). What lives here is the *deterministic* core: a typed ficha, a novelty profile
 derived from the source paper, dedup, and a rule-based tiering that is reproducible — the
-same fichas always land in the same tiers. Domain is a parameter (lesion detection today, dMRI
+same fichas always land in the same tiers. Domain is a parameter (segmentation today, dMRI
 tomorrow): nothing is hardcoded to a field.
 """
 from __future__ import annotations

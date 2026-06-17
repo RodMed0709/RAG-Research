@@ -20,7 +20,7 @@ def _setup():
               modalities=["MRI", "CT"], is_multimodal=True,
               axis_matches={"domain": True, "modality": True, "xai": False}),
         Ficha(paper_ref="c", title="Gamma-Net", year=2021, pdf_status="paywall",
-              xai_techniques=["TCAV"], axis_matches={"domain": False, "modality": False, "xai": True}),
+              xai_techniques=["concept attribution"], axis_matches={"domain": False, "modality": False, "xai": True}),
     ]
     return profile, tier_papers(profile, fichas)
 
