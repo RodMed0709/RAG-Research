@@ -46,7 +46,7 @@ passage.
 | **CODE ↔ papers** | generate / verify / stamp ML code against a paper's reproducibility norms | ✅ shipped (below) |
 | **REVIEW** | build the state of the art + verify a manuscript's claims against the corpus | ✅ `/review-paper`, `/review-consistency`, `/review-venue`, `/review-rewrite` |
 | **WRITE ← papers** | draft any section from an outline, every sentence anchored to evidence | ✅ `/write-section` |
-| **WRITE ← code** | draft Methods from a repo, every number stamped to the code | ⏳ planned |
+| **WRITE ← code** | draft Methods from a repo, every number pinned to a verbatim code line | ✅ `/write-methods` |
 
 ### WRITE-from-papers — write prose that can't hallucinate
 
@@ -175,11 +175,12 @@ Runnable demos in `examples/` (offline where they can be):
 
 Alpha. A research tool, not a maintained product — **use it at your own risk.** What's solid:
 the verify engine, the offline PaperQA2 substrate, extraction with cross-checks, the version
-stamp, the typed card-builder, DeepSeek adapters, the CLI, the MCP server, and the REVIEW +
-WRITE-from-papers pillars (claim-cards, tiering, consistency, references, tracked-changes
-delivery, grounded drafting — all on the same anchored-or-flagged guarantee). What's not here
-yet: WRITE-from-code, a REST face, image-equation handling, and conditional (`applies_when`)
-verify logic. No promises I can't keep.
+stamp, the typed card-builder, DeepSeek adapters, the CLI, the MCP server, and all four pillars —
+CODE-verify, REVIEW (claim-cards, tiering, consistency, references, tracked-changes delivery),
+WRITE-from-papers (grounded section drafting) and WRITE-from-code (Methods pinned to verbatim
+code lines), every one on the same anchored-or-flagged guarantee. What's not here yet: a REST
+face, image-equation handling, and conditional (`applies_when`) verify logic. No promises I
+can't keep.
 
 ## Standing on shoulders
 

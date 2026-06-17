@@ -47,12 +47,12 @@
   <text x="570" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">✅ nuevo</text>
 
   <!-- pillar 4 WRITE-from-code -->
-  <rect x="705" y="208" width="190" height="150" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 5" filter="url(#s)"/>
-  <text x="800" y="234" text-anchor="middle" font-size="14.5" font-weight="700" fill="#64748b">WRITE ← code</text>
-  <text x="800" y="256" text-anchor="middle" font-size="11.5" fill="#64748b">redacta Methods</text>
-  <text x="800" y="273" text-anchor="middle" font-size="11.5" fill="#64748b">desde un repo, cada</text>
-  <text x="800" y="290" text-anchor="middle" font-size="11.5" fill="#64748b">número sellado</text>
-  <text x="800" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">⏳ planeado</text>
+  <rect x="705" y="208" width="190" height="150" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2" filter="url(#s)"/>
+  <text x="800" y="234" text-anchor="middle" font-size="14.5" font-weight="700" fill="#047857">WRITE ← code</text>
+  <text x="800" y="256" text-anchor="middle" font-size="11.5" fill="#334155">redacta Methods</text>
+  <text x="800" y="273" text-anchor="middle" font-size="11.5" fill="#334155">desde un repo, cada</text>
+  <text x="800" y="290" text-anchor="middle" font-size="11.5" fill="#334155">número anclado</text>
+  <text x="800" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">✅ nuevo</text>
 
   <text x="450" y="398" text-anchor="middle" font-size="12.5" fill="#64748b">sustrato: PaperQA2 (dependencia, no fork) · LLM inyectado (DeepSeek por default)</text>
 </svg>
