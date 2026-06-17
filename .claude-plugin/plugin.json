@@ -1,0 +1,22 @@
+{
+  "name": "rag-research",
+  "description": "A grounded reviewer for research code and writing: checks your claims, numbers and methods against the paper or your code, and flags what it can't anchor instead of inventing it.",
+  "version": "0.1.0",
+  "author": {
+    "name": "RodMed0709",
+    "url": "https://github.com/RodMed0709"
+  },
+  "homepage": "https://github.com/RodMed0709/RAG-Research",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RodMed0709/RAG-Research.git"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "paper-review",
+    "fact-checking",
+    "reproducibility",
+    "anti-hallucination",
+    "academic-writing"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "RAG-Research": {
+      "command": "python",
+      "args": ["-m", "rag_research.mcp_server"]
+    }
+  }
+}

@@ -28,38 +28,51 @@ vibes**. Only the genuinely fuzzy stuff — *did the augmentation run in the rig
 an LLM. There's no "looks good to me" holistic judge, because that hand-wave is the exact failure
 it exists to kill.
 
-> It's not another "chat with your PDF." It's a **linter for reproducibility, grounded in the
-> paper.**
+> It's not another "chat with your PDF." It's a **reviewer for reproducibility and research
+> writing, grounded in the evidence.**
+
+## What this is — and isn't
+
+**It's a reviewer, not a ghostwriter.** You do the research and the writing. RAG-Research checks
+every claim, number and method against the paper or your code, and tells you — traceably — where
+you've drifted. It *can* help you draft, but only anchored to evidence, and it **flags what it
+can't support instead of inventing it.** The point is to keep you honest, not to write your paper
+for you.
 
 ## Four jobs, one engine
 
-The same anti-hallucination core — a verbatim **anchor** plus a verdict decided by **code, not
-the LLM** — powers four pillars. Each one refuses to assert anything it can't trace back to a
-passage.
+The same core — a verbatim **anchor** plus a verdict decided by **code, not the LLM** — powers
+four review jobs. Each one refuses to assert anything it can't trace back to a source passage or a
+real line of your code.
 
 <div align="center">
 <img src="docs/assets/pillars.svg" alt="RAG-Research pillars" width="760">
 </div>
 
-| Pillar | What it does | Status |
+| Job | What it does for you | How |
 |---|---|---|
-| **CODE ↔ papers** | generate / verify / stamp ML code against a paper's reproducibility norms | ✅ shipped (below) |
-| **REVIEW** | build the state of the art + verify a manuscript's claims against the corpus | ✅ `/review-paper`, `/review-consistency`, `/review-venue`, `/review-rewrite` |
-| **WRITE ← papers** | draft any section from an outline, every sentence anchored to evidence | ✅ `/write-section` |
-| **WRITE ← code** | draft Methods from a repo, every number pinned to a verbatim code line | ✅ `/write-methods` |
+| **Check code ↔ paper** | flags where your ML code stops honoring the paper's reproducibility norms; stamps it so drift surfaces next session | ✅ CLI / MCP |
+| **Review a manuscript** | builds the state of the art and verifies your claims against the corpus; flags the unsupported ones | ✅ `/review-paper`, `/review-consistency`, `/review-venue`, `/review-rewrite` |
+| **Draft, anchored** | helps you write a section from your outline, with every sentence tied to evidence — and the unsupported bullets marked, not faked | ✅ `/write-section` |
+| **Methods ↔ code** | drafts/checks your Methods against the repo, every number pinned to a real code line; mismatches flagged | ✅ `/write-methods` |
 
-### WRITE-from-papers — write prose that can't hallucinate
+It replicates papers (pull a paper, get the evidence, draft ablations on top) and grounds your
+writing in code — but the through-line is the same: **anchored or flagged, never invented.**
 
-The inverse of REVIEW: instead of checking an existing claim, it *generates* claims that are
-already verified. For each outline bullet it retrieves evidence, drafts one sentence grounded
-**only** in the verbatim, then re-runs `verify_claim` — the sentence enters the prose only if it
-earns an anchor. Bullets with no support come back marked `[SIN EVIDENCIA]`, never invented.
+### Drafting that can't hallucinate
+
+The drafting jobs are the inverse of review: instead of checking a claim you wrote, they help you
+write one that's *already* anchored. For each outline bullet (or code aspect) the tool retrieves
+the evidence, drafts one sentence grounded **only** in the verbatim source, then re-runs the
+verifier — the sentence survives only if it earns an anchor. Bullets with no support come back
+marked `[NO EVIDENCE]`. You stay the author; the tool just refuses to let an unsupported sentence
+through.
 
 <div align="center">
-<img src="docs/assets/write-from-papers.svg" alt="WRITE-from-papers flow" width="640">
+<img src="docs/assets/write-from-papers.svg" alt="Anchored drafting flow" width="640">
 </div>
 
-The rest of this README deep-dives **Pillar 1 (CODE ↔ papers)** — the original engine.
+The rest of this README deep-dives the **code ↔ paper** check — the original engine.
 
 ## See it catch the bug everyone ships
 
@@ -121,18 +134,30 @@ rag-research verify card.json train.py        # exit 0 ok · 1 ask a human · 2 
 Retrieval runs **fully offline** on local embeddings. Only the semantic judge calls out — and it
 calls *your* key, never a shipped one.
 
-## Drop it into Claude Code
+## Install it into Claude Code (plugin)
 
-RAG-Research ships an MCP server, so your AI assistant can hand the grounded check to it (assistant
-orchestrates; RAG-Research + your LLM do the verification):
+RAG-Research ships as a Claude Code plugin — review commands, the `agente-escritor` reviewer,
+and an MCP server, all on Claude, the same way [superpowers](https://github.com/obra/superpowers)
+installs.
 
 ```bash
-pip install "rag-research[mcp] @ git+https://github.com/RodMed0709/RAG-Research.git"
-claude mcp add RAG-Research -- python -m rag_research.mcp_server
+# 1. install the Python package (the MCP server + CLI live here)
+pip install "rag-research[mcp,paperqa] @ git+https://github.com/RodMed0709/RAG-Research.git"
 ```
 
-Then just say: *"use RAG-Research to verify this against the card."* Tools: `verify_code_against_card`,
-`verify_file_against_card`, `check_code_stamp`.
+```text
+# 2. add the marketplace and install the plugin, inside Claude Code
+/plugin marketplace add RodMed0709/RAG-Research
+/plugin install rag-research
+```
+
+That wires up the slash-commands (`/review-paper`, `/review-consistency`, `/review-venue`,
+`/review-rewrite`, `/write-section`, `/write-methods`), the `agente-escritor` agent, and the MCP
+tools. Then just say: *"use RAG-Research to check this claim against the corpus."*
+
+Prefer just the MCP server, no plugin? `claude mcp add RAG-Research -- python -m rag_research.mcp_server`.
+MCP tools: `verify_code_against_card`, `verify_claim_against_corpus`, `check_consistency`,
+`tier_papers`, `draft_section_tool`, `draft_methods_tool`, and more.
 
 ## Spec-cards (the one thing you author)
 
@@ -173,14 +198,17 @@ Runnable demos in `examples/` (offline where they can be):
 
 ## Honest status
 
-Alpha. A research tool, not a maintained product — **use it at your own risk.** What's solid:
-the verify engine, the offline PaperQA2 substrate, extraction with cross-checks, the version
-stamp, the typed card-builder, DeepSeek adapters, the CLI, the MCP server, and all four pillars —
-CODE-verify, REVIEW (claim-cards, tiering, consistency, references, tracked-changes delivery),
-WRITE-from-papers (grounded section drafting) and WRITE-from-code (Methods pinned to verbatim
-code lines), every one on the same anchored-or-flagged guarantee. What's not here yet: a REST
-face, image-equation handling, and conditional (`applies_when`) verify logic. No promises I
-can't keep.
+Alpha. A research tool, not a maintained product — **use it at your own risk.** What's solid and
+covered by tests (133): the verify engine, the offline PaperQA2 substrate, extraction with
+cross-checks, the version stamp, the typed card-builder, DeepSeek adapters, the CLI, the MCP
+server, and all four review jobs — code↔paper check, manuscript review (claim-cards, tiering,
+consistency, references, tracked-changes corrections), anchored drafting from papers, and
+Methods↔code — every one on the same anchored-or-flagged guarantee.
+
+**Honest caveat:** the anchored-or-flagged guarantee is enforced and unit-tested at the contract
+level, but the full end-to-end run (live PaperQA2 + a real LLM over a real paper) hasn't been
+validated yet — that's the next milestone. What's not here yet either: a REST face,
+image-equation handling, and conditional (`applies_when`) logic. No promises I can't keep.
 
 ## Standing on shoulders
 

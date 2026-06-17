@@ -1,0 +1,17 @@
+{
+  "name": "rag-research",
+  "owner": {
+    "name": "RodMed0709",
+    "url": "https://github.com/RodMed0709"
+  },
+  "plugins": [
+    {
+      "name": "rag-research",
+      "source": ".",
+      "description": "A grounded reviewer for research code and writing — anchored-or-flagged, never invented.",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "keywords": ["paper-review", "fact-checking", "reproducibility", "anti-hallucination"]
+    }
+  ]
+}
