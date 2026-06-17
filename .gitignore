@@ -37,3 +37,8 @@ Thumbs.db
 .idea/
 .vscode/
 smoke_corpus/
+
+# internal planning / project-local Claude config (not for the public repo)
+.claude/
+docs/superpowers/
+CHANGELOG.md

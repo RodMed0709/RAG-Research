@@ -1,44 +1,39 @@
 ---
-description: Revisión de consistencia interna de un manuscrito — números, arquitectura, terminología, secciones — con severidad 🔴🟡✍️
-argument-hint: <ruta-manuscrito.pdf|.tex>
+description: Internal-consistency review of a manuscript — numbers, architecture, terminology, sections — with 🔴🟡✍️ severity
+argument-hint: <manuscript.pdf|.tex>
 allowed-tools: Read, Write, Glob, Grep, mcp__RAG-Research__check_consistency, mcp__RAG-Research__verify_code_against_card
 ---
 
-# /review-consistency — consistencia interna del manuscrito
+# /review-consistency — manuscript internal consistency
 
-Revisas el manuscrito **contra sí mismo** (sin literatura externa). Combinas chequeos
-deterministas (MCP) con juicio sobre prosa. Manuscrito: `$1`.
+You review the manuscript **against itself** (no external literature), combining deterministic
+checks (MCP) with judgment over the prose. Manuscript: `$1`.
 
-## 1. Leer y extraer
+## 1. Read and extract
+Read the manuscript. Extract:
+- **Terminology** candidates for inconsistency: group equivalent variants that appear
+  (e.g. `["Grad-CAM","GradCAM"]`, acronyms with/without a hyphen).
+- **Confusion matrix** (tp/fp/fn/tn) and **reported metrics** (recall/precision/accuracy), if given.
+- **Sections present** and the list of **required sections** for the paper type (typically:
+  Introduction, Related Work, Methods, Results, Discussion, Conclusion).
 
-Lee el manuscrito. Extrae:
-- **Terminología** candidata a inconsistencia: agrupa variantes equivalentes que aparezcan
-  (ej. `["Grad-CAM","GradCAM"]`, siglas con/sin guion).
-- **Matriz de confusión** (tp/fp/fn/tn) y **métricas reportadas** (recall/precision/accuracy),
-  si el paper las da.
-- **Secciones presentes** y la lista de **secciones obligatorias** del tipo de paper
-  (típicas: Introducción, Trabajo Relacionado, Métodos, Resultados, Discusión, Conclusión).
-
-## 2. Chequeos deterministas (MCP)
-
-Llama `mcp__RAG-Research__check_consistency(config_json)` con:
+## 2. Deterministic checks (MCP)
+Call `mcp__RAG-Research__check_consistency(config_json)` with:
 ```json
 {"text": "...", "terminology_groups": [["Grad-CAM","GradCAM"]],
  "confusion": {"tp":11,"fp":2,"fn":4,"tn":100}, "claimed_metrics": {"recall":84.85},
- "sections_present": ["Introducción","Métodos"], "sections_required": ["Conclusión"]}
+ "sections_present": ["Introduction","Methods"], "sections_required": ["Conclusion"]}
 ```
-Devuelve hallazgos + `review_md`.
+Returns findings + `review_md`.
 
-## 3. Chequeos semánticos (juicio)
+## 3. Semantic checks (judgment)
+For what is not deterministic, review it yourself and add 🔴/🟡/✍️ findings:
+- **Architecture contradiction** (e.g. a branch described as U-Net in one place, ResNet50 in another).
+- **Inconsistent n** (a test-set size that doesn't reconcile across matrix, metrics, and text).
+- **Method vs name** (e.g. "TCAV" that is actually K-Means+PCA). If the author's code is available,
+  use `verify_code_against_card` with a spec-card of the real method to make the finding objective.
+- **Duplicate figures**, internally unsupported claims, over-sold statements.
 
-Lo que no es determinista, revísalo tú y añádelo como hallazgos 🔴/🟡/✍️:
-- **Contradicción de arquitectura** (ej. rama descrita como U-Net en un lugar y ResNet50 en otro).
-- **n inconsistente** (n_test que no cuadra entre matriz, métricas y texto).
-- **Método vs nombre** (ej. "TCAV" que en realidad es K-Means+PCA). Si hay código del autor,
-  usa `verify_code_against_card` con un spec-card del método real para volver objetivo el hallazgo.
-- **Figuras duplicadas**, claims sin soporte interno, afirmaciones sobre-vendidas.
-
-## 4. Entregar
-
-Fusiona los hallazgos deterministas (`review_md`) con los semánticos en `REVIEW.md`, agrupados
-por severidad. Resume en chat los 🔴 mayores primero.
+## 4. Deliver
+Merge the deterministic findings (`review_md`) with the semantic ones into `REVIEW.md`, grouped by
+severity. Summarize the major 🔴 findings first in chat.

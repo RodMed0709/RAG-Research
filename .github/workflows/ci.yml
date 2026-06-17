@@ -24,6 +24,6 @@ jobs:
       - name: ruff
         run: ruff check src tests
       - name: mypy
-        run: mypy src/specrag
+        run: mypy src/rag_research
       - name: pytest
         run: pytest -q

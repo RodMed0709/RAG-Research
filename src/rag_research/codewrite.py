@@ -1,8 +1,8 @@
 """WRITE-from-code — pillar 4. Draft a paper's Methods straight from a code repo, with every
 sentence anchored to a verbatim line of code.
 
-The mirror image of the CODE pillar: specrag *verifies* that code honors a paper; this
-*writes* the paper's Methods FROM the code. The anti-hallucination guarantee is even stronger
+The mirror image of the code↔paper check: that pillar *verifies* that code honors a paper;
+this *writes* the paper's Methods FROM the code. The anti-hallucination guarantee is even stronger
 here than in WRITE-from-papers — it is DETERMINISTIC, not judge-based: a Methods sentence
 about an aspect (batch_size, lr, augmentation, ...) is written ONLY if the value the writer
 states is pinned verbatim in an actual line of code. If the value cannot be located in the

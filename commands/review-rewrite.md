@@ -1,32 +1,30 @@
 ---
-description: Reescribe/corrige párrafos de un manuscrito con cada frase anclada a evidencia verificada (anti-alucinación), y genera cambios marcados (MD/LaTeX/Word)
-argument-hint: <ruta-manuscrito> <corpus-pdfs-dir> [seccion-o-parrafo]
+description: Rewrite/correct manuscript paragraphs with every sentence anchored to verified evidence (anti-hallucination), and produce tracked changes (MD/LaTeX/Word)
+argument-hint: <manuscript> <corpus-pdfs-dir> [section-or-paragraph]
 allowed-tools: Read, Write, Edit, Glob, Grep, mcp__RAG-Research__verify_claim_against_corpus, mcp__RAG-Research__render_changes, mcp__RAG-Research__export_docx
 ---
 
-# /review-rewrite — reescritura verificada de párrafos
+# /review-rewrite — verified paragraph rewriting
 
-Reescribes o corriges prosa del manuscrito `$1` **sin alucinar**: toda afirmación nueva o
-reformulada se verifica contra el corpus de PDFs en `$2` antes de quedarse. `$3` = sección o
-párrafo objetivo (opcional; si falta, propón los párrafos más débiles).
+You rewrite or correct prose in manuscript `$1` **without hallucinating**: every new or reworded
+factual statement is verified against the corpus of PDFs in `$2` before it stays. `$3` = target
+section or paragraph (optional; if absent, propose the weakest paragraphs).
 
-## Regla dura
+## Hard rule
+You emit no sentence with factual content unless it is `HONORED` with a verbatim anchor. Anything
+`UNSUPPORTED`/`CONTRADICTED` → either reword it until it anchors, or mark it "needs a source" and
+do NOT assert it.
 
-No emites ninguna frase con contenido factual que no quede `HONORED` con anchor verbatim.
-Lo que salga `UNSUPPORTED`/`CONTRADICTED` → o lo reformulas hasta anclarlo, o lo marcas como
-"requiere fuente" y NO lo afirmas.
-
-## Flujo
-
-1. **Leer** el párrafo objetivo + el corpus (`$2`).
-2. **Descomponer** el texto (actual o tu reescritura propuesta) en claims atómicos. Construye
-   un `ClaimCard` (numeric_fact con value_spec; citation/methodological/novelty/comparative).
-3. **Verificar**: `mcp__RAG-Research__verify_claim_against_corpus(claim_card_json, corpus_paths)`.
-4. **Reescribir** integrando solo lo `HONORED`, citando la fuente del anchor. Reformula o
-   elimina lo `UNSUPPORTED`/`CONTRADICTED`.
-5. **Cambios marcados**: por cada edición arma `{before, after, reason, location}` y llama
-   `mcp__RAG-Research__render_changes(changes_json)` → `CAMBIOS_MARCADOS.md` + snippet LaTeX.
-   - Si el manuscrito es proyecto `.tex` (Overleaf), aplica el markup LaTeX in-place con `Edit`
-     (preámbulo: `\usepackage{soul}`, `\usepackage{xcolor}`).
-   - Word: `mcp__RAG-Research__export_docx(markdown, out_path)` para `CAMBIOS_MARCADOS.docx`.
-6. **Resumen** en chat: nº frases ancladas vs descartadas por falta de evidencia.
+## Flow
+1. **Read** the target paragraph + the corpus (`$2`).
+2. **Decompose** the text (current or your proposed rewrite) into atomic claims. Build a
+   `ClaimCard` (numeric_fact with value_spec; citation/methodological/novelty/comparative).
+3. **Verify**: `verify_claim_against_corpus(claim_card_json, corpus_paths)`.
+4. **Rewrite** integrating only the `HONORED` claims, citing the anchor's source. Reword or drop
+   the `UNSUPPORTED`/`CONTRADICTED` ones.
+5. **Tracked changes**: for each edit build `{before, after, reason, location}` and call
+   `render_changes(changes_json)` → `TRACKED_CHANGES.md` + a LaTeX snippet.
+   - For a `.tex` project (Overleaf), apply the LaTeX markup in place with `Edit` (preamble:
+     `\usepackage{soul}`, `\usepackage{xcolor}`).
+   - For Word: `export_docx(markdown, out_path)` → `TRACKED_CHANGES.docx`.
+6. **Summary** in chat: number of sentences anchored vs dropped for lack of evidence.

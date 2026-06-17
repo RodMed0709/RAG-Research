@@ -136,7 +136,7 @@ calls *your* key, never a shipped one.
 
 ## Install it into Claude Code (plugin)
 
-RAG-Research ships as a Claude Code plugin — review commands, the `agente-escritor` reviewer,
+RAG-Research ships as a Claude Code plugin — review commands, the `paper-reviewer` reviewer,
 and an MCP server, all on Claude, the same way [superpowers](https://github.com/obra/superpowers)
 installs.
 
@@ -152,7 +152,7 @@ pip install "rag-research[mcp,paperqa] @ git+https://github.com/RodMed0709/RAG-R
 ```
 
 That wires up the slash-commands (`/review-paper`, `/review-consistency`, `/review-venue`,
-`/review-rewrite`, `/write-section`, `/write-methods`), the `agente-escritor` agent, and the MCP
+`/review-rewrite`, `/write-section`, `/write-methods`), the `paper-reviewer` agent, and the MCP
 tools. Then just say: *"use RAG-Research to check this claim against the corpus."*
 
 Prefer just the MCP server, no plugin? `claude mcp add RAG-Research -- python -m rag_research.mcp_server`.

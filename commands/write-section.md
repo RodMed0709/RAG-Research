@@ -1,55 +1,47 @@
 ---
-description: Redacta una sección de paper desde un outline de bullets, con cada oración anclada a evidencia verbatim del corpus (anti-alucinación). Bullets sin soporte se marcan, no se inventan.
-argument-hint: <outline.md|.txt> [titulo-seccion] [carpeta-corpus]
+description: Draft a paper section from an outline of bullets, every sentence anchored to a verbatim passage from the corpus (anti-hallucination). Unsupported bullets are flagged, not invented.
+argument-hint: <outline.md|.txt> [section-title] [corpus-dir]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, mcp__RAG-Research__draft_section_tool
 ---
 
-# /write-section — pilar WRITE-from-papers
+# /write-section — anchored drafting (from papers)
 
-Eres el orquestador. Conviertes un **outline de bullets** en prosa de paper donde **cada
-oración nace anclada a un pasaje verbatim** del corpus. Si un bullet no tiene soporte, se
-marca `SIN EVIDENCIA` — **nunca se inventa**. Es el inverso de `/review-paper`: en vez de
-verificar claims existentes, generas claims nuevas que ya nacen verificadas.
+You are the orchestrator. You turn an **outline of bullets** into paper prose where **every
+sentence is born anchored to a verbatim passage** from the corpus. If a bullet has no support, it
+is marked `[NO EVIDENCE]` — **never invented**. It is the inverse of `/review-paper`: instead of
+verifying existing claims, you generate new claims that are already verified.
 
-**Argumentos:** `$ARGUMENTS`
-- `$1` = ruta a un outline (`.md`/`.txt`), un bullet por línea. Obligatorio.
-- `$2` = título de la sección (opcional; ej. "Related Work", "Background"). Default: "Section".
-- `$3` = carpeta del corpus (opcional; PDFs fuente). Default: `<dir-del-outline>/pdfs/`.
+**Arguments:** `$ARGUMENTS`
+- `$1` = path to an outline (`.md`/`.txt`), one bullet per line. Required.
+- `$2` = section title (optional; e.g. "Related Work", "Background"). Default: "Section".
+- `$3` = corpus directory (optional; source PDFs). Default: `<outline-dir>/pdfs/`.
 
-El tema es parámetro: sirve para cualquier campo. Nada hardcodeado.
+The topic is a parameter: this works for any field. Nothing is hardcoded.
 
-## PASO 0 — Preparar entradas
+## STEP 0 — Prepare inputs
+1. Read the outline (`Read`). Each non-empty line (strip `-`/`*`/numbering) = one bullet.
+2. Locate the corpus: `$3` or `<outline-dir>/pdfs/`. If there are no PDFs, tell the user and offer
+   to run the literature-acquisition phase of `/review-paper` (STEP 1) first.
 
-1. Lee el outline (`Read`). Cada línea no vacía (quita `-`/`*`/numeración) = un bullet.
-2. Localiza el corpus: `$3` o `<dir-del-outline>/pdfs/`. Si no hay PDFs, díselo al usuario y
-   ofrece correr primero la fase de adquisición de literatura de `/review-paper` (PASO 1).
-
-## PASO 1 — Redactar la sección anclada (MCP)
-
-Llama `mcp__RAG-Research__draft_section_tool(outline, corpus_paths, title, k)` con:
-- `outline` = lista de bullets.
-- `corpus_paths` = lista de rutas de PDFs del corpus.
-- `title` = `$2`.
-
-Por cada bullet la tool: recupera pasajes verbatim → redacta UNA oración sólo desde esos
-pasajes → **re-verifica con el motor anti-alucinación** (`verify_claim`). La oración entra a
-la prosa sólo si gana un anchor verbatim (`ANCHORED`). Devuelve:
-- `markdown` — la sección renderizada (prosa con citas + marcadores `SIN EVIDENCIA` visibles +
-  apéndice de trazabilidad bullet→verbatim).
-- `cards` — una draft-card por bullet (status, anchor, source).
+## STEP 1 — Draft the anchored section (MCP)
+Call `mcp__RAG-Research__draft_section_tool(outline, corpus_paths, title, k)`. For each bullet the
+tool retrieves verbatim passages → drafts ONE sentence from those passages only → **re-verifies
+with the anti-hallucination engine** (`verify_claim`). The sentence enters the prose only if it
+earns a verbatim anchor (`ANCHORED`). It returns:
+- `markdown` — the rendered section (prose with citations + visible `[NO EVIDENCE]` markers + a
+  traceability appendix bullet→verbatim).
+- `cards` — one draft-card per bullet (status, anchor, source).
 - `no_evidence_count` / `total`.
 
-## PASO 2 — Entregar
+## STEP 2 — Deliver
+1. Write `markdown` to `<outline-dir>/<title>_draft.md`.
+2. Summarize in chat: how many sentences are `ANCHORED`, how many `[NO EVIDENCE]`, and which
+   bullets lack support (the gaps to research or to cut from the paper).
+3. For the `[NO EVIDENCE]` ones: offer to expand the corpus (more PDFs) or reword the bullet. **Do
+   not hand-write the missing sentence yourself** — it would break the anti-hallucination guarantee.
 
-1. Escribe `markdown` a `<dir-del-outline>/<titulo>_draft.md`.
-2. Resume en chat: cuántas oraciones quedaron `ANCHORED`, cuántas `SIN EVIDENCIA`, y qué
-   bullets faltan de soporte (son los huecos a investigar o a recortar del paper).
-3. Para los `SIN EVIDENCIA`: ofrece ampliar el corpus (más PDFs) o reformular el bullet. **No
-   redactes tú a mano la oración faltante** — rompería la garantía anti-alucinación.
+## Close
+Assert nothing the tool did not anchor. The `[NO EVIDENCE]` markers are a feature, not a bug: they
+are exactly the statements the corpus does not support.
 
-## Cierre
-
-No afirmes nada que la tool no haya anclado. Los marcadores `SIN EVIDENCIA` son una feature,
-no un bug: son exactamente las afirmaciones que el corpus no respalda.
-
-> Después: `/review-consistency` sobre el draft, entrega Word/LaTeX con `render_changes`/`export_docx`.
+> Next: `/review-consistency` on the draft; deliver Word/LaTeX with `render_changes`/`export_docx`.

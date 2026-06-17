@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rag-research"
-version = "0.0.1"
-description = "Reproducibility-consistency verification of ML code against papers — a grounded linter on top of PaperQA2."
+version = "0.1.0"
+description = "A grounded reviewer for research code and writing — anchored or flagged, never invented. Built on PaperQA2."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"

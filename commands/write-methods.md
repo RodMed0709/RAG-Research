@@ -1,50 +1,45 @@
 ---
-description: Redacta la sección Methods de un paper directamente desde un repo de código — cada oración anclada a una línea de código verbatim (determinístico). Aspectos que el código no fija se marcan, no se inventan.
-argument-hint: <ruta-repo|archivo.py> [titulo] [aspectos-coma-separados]
+description: Draft a paper's Methods section straight from a code repo — every sentence anchored to a verbatim code line (deterministic). Aspects the code does not set are flagged, not invented.
+argument-hint: <repo|file.py> [title] [comma-separated-aspects]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, mcp__RAG-Research__draft_methods_tool, mcp__RAG-Research__draft_methods_from_file
 ---
 
-# /write-methods — pilar WRITE-from-code
+# /write-methods — anchored drafting (from code)
 
-Eres el orquestador. Conviertes un **repo de código ML** en la sección **Methods** de un paper,
-donde **cada oración está anclada a una línea de código verbatim**. Es el inverso de specrag:
-en vez de verificar que el código honra un paper, escribes el paper desde el código. La garantía
-es **determinística**: una oración entra a Methods solo si su valor está literal en el código.
+You are the orchestrator. You turn an **ML code repo** into a paper's **Methods** section, where
+**every sentence is anchored to a verbatim code line**. It is the inverse of the code↔paper check:
+instead of verifying that code honors a paper, you write the paper from the code. The guarantee is
+**deterministic**: a sentence enters Methods only if its value appears literally in the code.
 
-**Argumentos:** `$ARGUMENTS`
-- `$1` = ruta al repo o archivo de entrenamiento (`.py`). Obligatorio.
-- `$2` = título de la sección (opcional; default "Methods").
-- `$3` = aspectos a reportar, coma-separados (opcional; si falta, dedúcelos del código).
+**Arguments:** `$ARGUMENTS`
+- `$1` = path to the repo or training file (`.py`). Required.
+- `$2` = section title (optional; default "Methods").
+- `$3` = aspects to report, comma-separated (optional; infer them from the code if absent).
 
-## PASO 0 — Reunir el código
+## STEP 0 — Gather the code
+1. If `$1` is a file, read it. If it's a repo, `Glob`/`Read` the relevant training files
+   (train*.py, model*.py, config*.py, *.yaml) and concatenate them into one code dump (include
+   paths as comments for traceability).
+2. Derive the **aspects** (`$3` or infer): hyperparameters (batch_size, lr, epochs, optimizer,
+   weight_decay), data (augmentations + phase, normalization, split), architecture (backbone,
+   pretrained, loss), training (scheduler, early stopping, seed). The aspect set is a parameter —
+   it works for any repo.
 
-1. Si `$1` es un archivo, léelo. Si es un repo, `Glob`/`Read` los archivos de entrenamiento
-   relevantes (train*.py, model*.py, config*.py, *.yaml) y concaténalos en un solo dump de
-   código (incluye rutas como comentarios para trazabilidad).
-2. Deriva los **aspectos** (`$3` o dedúcelos): hiperparámetros (batch_size, lr, epochs,
-   optimizer, weight_decay), datos (augmentations + fase, normalización, split), arquitectura
-   (backbone, pretrained, loss), entrenamiento (scheduler, early stopping, seed). El conjunto
-   de aspectos es parámetro — sirve para cualquier repo.
-
-## PASO 1 — Redactar Methods desde el código (MCP)
-
-Llama `mcp__RAG-Research__draft_methods_tool(aspects, code, title)` con la lista de aspectos y
-el dump de código. Por cada aspecto: localiza el valor → lo fija verbatim en una línea →
-redacta UNA oración. Devuelve:
-- `markdown` — Methods (prosa + apéndice de trazabilidad aspecto→`Lnn: código` + marcadores
-  `[SIN EVIDENCIA EN CÓDIGO]` visibles).
-- `claims` — por aspecto: value, code_line, lineno, status.
+## STEP 1 — Draft Methods from the code (MCP)
+Call `mcp__RAG-Research__draft_methods_tool(aspects, code, title)`. For each aspect it locates the
+value → pins it verbatim to a line → drafts ONE sentence. Returns:
+- `markdown` — Methods (prose + traceability appendix aspect→`Lnn: code` + visible
+  `[NOT IN CODE]` markers).
+- `claims` — per aspect: value, code_line, lineno, status.
 - `no_evidence_count` / `total`.
 
-## PASO 2 — Entregar
+## STEP 2 — Deliver
+1. Write `markdown` to `<dir>/<title>_methods.md`.
+2. Summarize: how many aspects are `ANCHORED` vs `[NOT IN CODE]`. The `[NOT IN CODE]` ones are
+   aspects the code does not set explicitly — either the paper should not assert them, or they
+   live in a config/CLI not included.
+3. **Do not hand-write** the sentence for an unsupported aspect — it would break the guarantee.
 
-1. Escribe `markdown` a `<dir>/<titulo>_methods.md`.
-2. Resume: cuántos aspectos quedaron `ANCHORED` vs `SIN EVIDENCIA`. Los `SIN EVIDENCIA` son
-   aspectos que el código **no fija explícitamente** — o el paper no debe afirmarlos, o hay que
-   buscarlos en config/CLI no incluidos.
-3. **No redactes a mano** la oración de un aspecto sin evidencia — rompería la garantía.
-
-## Cierre
-
-Todo número en el Methods sale de una línea real de código (ver trazabilidad). Lo no anclado
-está marcado, no inventado. Combina con `/review-consistency` para cruzar Methods vs resultados.
+## Close
+Every number in Methods comes from a real code line (see traceability). What is not anchored is
+flagged, not invented. Combine with `/review-consistency` to cross-check Methods against Results.
