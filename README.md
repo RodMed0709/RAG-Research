@@ -2,7 +2,7 @@
 
 # RAG-Research
 
-### Your LLM keeps "reproducing" papers wrong. RAG-Research catches it — line by line, traceable to the passage that says so.
+### Your LLM keeps "reproducing" papers wrong. RAG-Research catches it, line by line, traceable to the passage that says so.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
@@ -14,50 +14,50 @@
 ---
 
 You asked your LLM to implement a method from a paper. It used `batch_size=8`. You asked again
-next week — it forgot. It dropped the intensity jitter into the **training** loop when the paper
+next week and it forgot. It dropped the intensity jitter into the **training** loop when the paper
 clearly said **eval only**. The Dice score still looks fine. The reproduction is quietly broken,
 and you won't find out until a reviewer does.
 
-Here's the real problem: those norms never lived anywhere solid. They lived in the model's head —
-and the model's head resets every session.
+The real problem: those norms never lived anywhere solid. They lived in the model's head, and that
+resets every session.
 
 **RAG-Research pins them down.** It reads the paper, turns each reproducibility rule into a typed,
-verbatim-anchored *spec-card*, then checks your code against it — every constraint traceable to the
+verbatim-anchored *spec-card*, then checks your code against it, every constraint traceable to the
 exact passage that demands it. Hard numbers (`batch_size`, `lr`) are checked by **code, not
-vibes**. Only the genuinely fuzzy stuff — *did the augmentation run in the right phase?* — goes to
-an LLM. There's no "looks good to me" holistic judge, because that hand-wave is the exact failure
-it exists to kill.
+vibes**. Only the genuinely fuzzy stuff (did the augmentation run in the right phase?) goes to an
+LLM. There is no "looks good to me" holistic judge, because that hand-wave is the failure it exists
+to kill.
 
 > It's not another "chat with your PDF." It's a **reviewer for reproducibility and research
 > writing, grounded in the evidence.**
 
-## What this is — and isn't
+## What this is, and isn't
 
 **It's a reviewer, not a ghostwriter.** You do the research and the writing. RAG-Research checks
-every claim, number and method against the paper or your code, and tells you — traceably — where
+every claim, number and method against the paper or your code, and tells you, traceably, where
 you've drifted. It *can* help you draft, but only anchored to evidence, and it **flags what it
 can't support instead of inventing it.** The point is to keep you honest, not to write your paper
 for you.
 
 ## Four jobs, one engine
 
-The same core — a verbatim **anchor** plus a verdict decided by **code, not the LLM** — powers
-four review jobs. Each one refuses to assert anything it can't trace back to a source passage or a
-real line of your code.
+The same core (a verbatim **anchor**, plus a verdict decided by **code, not the LLM**) powers four
+review jobs. Each one refuses to assert anything it can't trace back to a source passage or a real
+line of your code.
 
 <div align="center">
-<img src="docs/assets/pillars.svg" alt="RAG-Research pillars" width="760">
+<img src="docs/assets/pillars.svg" alt="RAG-Research pillars" width="820">
 </div>
 
 | Job | What it does for you | How |
 |---|---|---|
 | **Check code ↔ paper** | flags where your ML code stops honoring the paper's reproducibility norms; stamps it so drift surfaces next session | ✅ CLI / MCP |
 | **Review a manuscript** | builds the state of the art and verifies your claims against the corpus; flags the unsupported ones | ✅ `/review-paper`, `/review-consistency`, `/review-venue`, `/review-rewrite` |
-| **Draft, anchored** | helps you write a section from your outline, with every sentence tied to evidence — and the unsupported bullets marked, not faked | ✅ `/write-section` |
+| **Draft, anchored** | helps you write a section from your outline, every sentence tied to evidence; unsupported bullets are marked, not faked | ✅ `/write-section` |
 | **Methods ↔ code** | drafts/checks your Methods against the repo, every number pinned to a real code line; mismatches flagged | ✅ `/write-methods` |
 
 It replicates papers (pull a paper, get the evidence, draft ablations on top) and grounds your
-writing in code — but the through-line is the same: **anchored or flagged, never invented.**
+writing in code. The through-line is the same: **anchored or flagged, never invented.**
 
 ### Drafting that can't hallucinate
 
@@ -69,7 +69,7 @@ marked `[NO EVIDENCE]`. You stay the author; the tool just refuses to let an uns
 through.
 
 <div align="center">
-<img src="docs/assets/write-from-papers.svg" alt="Anchored drafting flow" width="640">
+<img src="docs/assets/write-from-papers.svg" alt="Anchored drafting flow" width="440">
 </div>
 
 The rest of this README deep-dives the **code ↔ paper** check — the original engine.
