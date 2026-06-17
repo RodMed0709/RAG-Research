@@ -274,6 +274,72 @@ def render_changes(changes_json: str, title: str = "Cambios marcados") -> dict[s
 
 
 @mcp.tool
+async def draft_section_tool(
+    outline: list[str], corpus_paths: list[str], title: str = "Section", k: int = 8
+) -> dict[str, object]:
+    """WRITE-from-papers: draft a paper section from an outline, grounded in a corpus.
+
+    For each bullet, retrieves verbatim passages from the corpus PDFs, writes one sentence
+    grounded ONLY in them, then re-verifies it with the anti-hallucination engine: a sentence
+    enters the prose only if it earns a verbatim anchor (status ANCHORED). Bullets without
+    support come back as NO_EVIDENCE — visible, never invented. Returns the rendered Markdown
+    section, per-bullet draft-cards, and a count of unsupported bullets. Needs the
+    ``[paperqa]`` extra and ``DEEPSEEK_API_KEY``.
+    """
+    from .draft import draft_section, render_draft_section
+    from .llm import make_claim_extractor, make_claim_judge, make_writer
+    from .substrate import Substrate
+
+    _load_keys()
+    sub = Substrate()
+    for path in corpus_paths:
+        await sub.ingest(path)
+
+    # Pre-retrieve per query (bullets AND, indirectly, the written sentences) so the engine
+    # stays synchronous. We cache on the query string used at each retrieve call site.
+    cache: dict[str, list[object]] = {}
+
+    async def _warm(query: str) -> None:
+        if query not in cache:
+            cache[query] = await sub.retrieve(query, k)  # type: ignore[assignment]
+
+    for bullet in outline:
+        await _warm(bullet)
+
+    def retrieve(query: str, _k: int) -> list[object]:
+        return cache.get(query, [])  # type: ignore[return-value]
+
+    # verify_claim re-retrieves with the WRITTEN sentence, so its retrieval must be warm
+    # before the sync draft runs. Write each sentence once and MEMOIZE it: draft_section then
+    # reuses the exact same sentence (not a re-generated, possibly-different one), so the
+    # warmed retrieval cache always hits. Without memoization a non-deterministic LLM could
+    # yield a second sentence whose query was never warmed -> a false NO_EVIDENCE.
+    _raw_writer = make_writer()
+    _memo: dict[str, str] = {}
+
+    def writer(bullet: str, passage_texts: list[str]) -> str:
+        if bullet not in _memo:
+            _memo[bullet] = _raw_writer(bullet, passage_texts)
+        return _memo[bullet]
+
+    for bullet in outline:
+        sentence = writer(bullet, [p.verbatim_text for p in cache.get(bullet, [])])  # type: ignore[attr-defined]
+        await _warm(sentence)
+
+    section = draft_section(
+        outline, retrieve=retrieve, write=writer,
+        judge=make_claim_judge(), extractor=make_claim_extractor(), k=k,
+    )
+    return {
+        "title": title,
+        "no_evidence_count": section.no_evidence_count(),
+        "total": len(section.cards),
+        "markdown": render_draft_section(section, title=title),
+        "cards": [c.model_dump(mode="json") for c in section.cards],
+    }
+
+
+@mcp.tool
 def export_docx(markdown: str, out_path: str) -> dict[str, object]:
     """Export a Markdown string to a .docx file at ``out_path`` (needs python-docx). Use for
     REPORTE / REVIEW / CAMBIOS_MARCADOS Word deliverables. Returns the written path."""

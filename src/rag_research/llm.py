@@ -14,6 +14,7 @@ from pathlib import Path
 from .claim import ClaimVerdict
 from .claimverify import ClaimExtractor, ClaimJudge
 from .codegen import Generator
+from .draft import Writer
 from .extract import Extractor, ReadBack
 from .speccard import SpecCard, SpecField, State
 from .verify import Judge, Locator
@@ -204,6 +205,28 @@ def make_claim_extractor(model: str = DEEPSEEK) -> ClaimExtractor:
         return _clean_value(_complete(system, user, model=model, max_tokens=16))
 
     return extractor
+
+
+def make_writer(model: str = DEEPSEEK) -> Writer:
+    """Write ONE prose sentence for an outline bullet, grounded ONLY in the retrieved
+    passages — no outside knowledge. The output is a CANDIDATE: ``draft_bullet`` re-verifies
+    it with ``verify_claim`` before letting it into the prose, so a sentence that strays
+    beyond the passages is caught and downgraded to NO_EVIDENCE."""
+    def writer(bullet: str, passage_texts: list[str]) -> str:
+        system = (
+            "You are drafting one sentence of a paper. Write a SINGLE declarative sentence that "
+            "states the point of the bullet USING ONLY the facts in the source passages. Never "
+            "add numbers, names, or claims absent from the passages. If the passages do not "
+            "support the bullet, write the most cautious sentence the passages allow. Output "
+            "ONLY the sentence, no prose around it."
+        )
+        user = (
+            f"Bullet:\n{bullet}\n\nSource passages:\n{_passages_block(passage_texts)}"
+            "\n\nSentence:"
+        )
+        return _complete(system, user, model=model, max_tokens=120)
+
+    return writer
 
 
 def make_generator(model: str = DEEPSEEK) -> Generator:

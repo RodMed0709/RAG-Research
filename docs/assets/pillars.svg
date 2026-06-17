@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="900" height="430" rx="18" fill="#f8fafc"/>
+  <rect x="0" y="0" width="900" height="430" rx="18" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+
+  <text x="450" y="44" text-anchor="middle" font-size="25" font-weight="700" fill="#0f172a">One anti-hallucination engine, four jobs</text>
+  <text x="450" y="69" text-anchor="middle" font-size="13.5" fill="#64748b">every assertion anchored to a verbatim passage — or flagged, never invented</text>
+
+  <!-- engine core -->
+  <rect x="300" y="92" width="300" height="62" rx="14" fill="#eef2ff" stroke="#6366f1" stroke-width="2.5" filter="url(#s)"/>
+  <text x="450" y="120" text-anchor="middle" font-size="16" font-weight="700" fill="#4338ca">Jumper + verify (motor)</text>
+  <text x="450" y="140" text-anchor="middle" font-size="12" fill="#6366f1">anchor verbatim · veredicto por código, no por el LLM</text>
+
+  <!-- connectors -->
+  <line x1="450" y1="154" x2="130" y2="206" stroke="#94a3b8" stroke-width="1.6"/>
+  <line x1="450" y1="154" x2="370" y2="206" stroke="#94a3b8" stroke-width="1.6"/>
+  <line x1="450" y1="154" x2="600" y2="206" stroke="#94a3b8" stroke-width="1.6"/>
+  <line x1="450" y1="154" x2="800" y2="206" stroke="#94a3b8" stroke-width="1.6"/>
+
+  <!-- pillar 1 CODE -->
+  <rect x="35" y="208" width="190" height="150" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2" filter="url(#s)"/>
+  <text x="130" y="234" text-anchor="middle" font-size="15" font-weight="700" fill="#047857">CODE ↔ papers</text>
+  <text x="130" y="256" text-anchor="middle" font-size="11.5" fill="#334155">genera/verifica/sella</text>
+  <text x="130" y="273" text-anchor="middle" font-size="11.5" fill="#334155">código ML anclado a</text>
+  <text x="130" y="290" text-anchor="middle" font-size="11.5" fill="#334155">normas del paper</text>
+  <text x="130" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">✅ en GitHub</text>
+
+  <!-- pillar 2 REVIEW -->
+  <rect x="245" y="208" width="190" height="150" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2" filter="url(#s)"/>
+  <text x="340" y="234" text-anchor="middle" font-size="15" font-weight="700" fill="#047857">REVIEW</text>
+  <text x="340" y="256" text-anchor="middle" font-size="11.5" fill="#334155">estado del arte +</text>
+  <text x="340" y="273" text-anchor="middle" font-size="11.5" fill="#334155">verifica claims vs</text>
+  <text x="340" y="290" text-anchor="middle" font-size="11.5" fill="#334155">corpus (anti-aluc.)</text>
+  <text x="340" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">✅ en main</text>
+
+  <!-- pillar 3 WRITE-from-papers -->
+  <rect x="475" y="208" width="190" height="150" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2" filter="url(#s)"/>
+  <text x="570" y="234" text-anchor="middle" font-size="14.5" font-weight="700" fill="#047857">WRITE ← papers</text>
+  <text x="570" y="256" text-anchor="middle" font-size="11.5" fill="#334155">redacta secciones</text>
+  <text x="570" y="273" text-anchor="middle" font-size="11.5" fill="#334155">desde outline, cada</text>
+  <text x="570" y="290" text-anchor="middle" font-size="11.5" fill="#334155">oración anclada</text>
+  <text x="570" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">✅ nuevo</text>
+
+  <!-- pillar 4 WRITE-from-code -->
+  <rect x="705" y="208" width="190" height="150" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 5" filter="url(#s)"/>
+  <text x="800" y="234" text-anchor="middle" font-size="14.5" font-weight="700" fill="#64748b">WRITE ← code</text>
+  <text x="800" y="256" text-anchor="middle" font-size="11.5" fill="#64748b">redacta Methods</text>
+  <text x="800" y="273" text-anchor="middle" font-size="11.5" fill="#64748b">desde un repo, cada</text>
+  <text x="800" y="290" text-anchor="middle" font-size="11.5" fill="#64748b">número sellado</text>
+  <text x="800" y="333" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">⏳ planeado</text>
+
+  <text x="450" y="398" text-anchor="middle" font-size="12.5" fill="#64748b">sustrato: PaperQA2 (dependencia, no fork) · LLM inyectado (DeepSeek por default)</text>
+</svg>

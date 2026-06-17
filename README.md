@@ -31,6 +31,36 @@ it exists to kill.
 > It's not another "chat with your PDF." It's a **linter for reproducibility, grounded in the
 > paper.**
 
+## Four jobs, one engine
+
+The same anti-hallucination core — a verbatim **anchor** plus a verdict decided by **code, not
+the LLM** — powers four pillars. Each one refuses to assert anything it can't trace back to a
+passage.
+
+<div align="center">
+<img src="docs/assets/pillars.svg" alt="RAG-Research pillars" width="760">
+</div>
+
+| Pillar | What it does | Status |
+|---|---|---|
+| **CODE ↔ papers** | generate / verify / stamp ML code against a paper's reproducibility norms | ✅ shipped (below) |
+| **REVIEW** | build the state of the art + verify a manuscript's claims against the corpus | ✅ `/review-paper`, `/review-consistency`, `/review-venue`, `/review-rewrite` |
+| **WRITE ← papers** | draft any section from an outline, every sentence anchored to evidence | ✅ `/write-section` |
+| **WRITE ← code** | draft Methods from a repo, every number stamped to the code | ⏳ planned |
+
+### WRITE-from-papers — write prose that can't hallucinate
+
+The inverse of REVIEW: instead of checking an existing claim, it *generates* claims that are
+already verified. For each outline bullet it retrieves evidence, drafts one sentence grounded
+**only** in the verbatim, then re-runs `verify_claim` — the sentence enters the prose only if it
+earns an anchor. Bullets with no support come back marked `[SIN EVIDENCIA]`, never invented.
+
+<div align="center">
+<img src="docs/assets/write-from-papers.svg" alt="WRITE-from-papers flow" width="640">
+</div>
+
+The rest of this README deep-dives **Pillar 1 (CODE ↔ papers)** — the original engine.
+
 ## See it catch the bug everyone ships
 
 ```python
@@ -143,11 +173,13 @@ Runnable demos in `examples/` (offline where they can be):
 
 ## Honest status
 
-Alpha. A research tool, not a maintained product — **use it at your own risk.** What's solid: the
-verify engine, the offline PaperQA2 substrate, extraction with cross-checks, the version stamp, the
-typed card-builder, DeepSeek adapters, the CLI, and the MCP server. What's not here yet: a REST
-face, image-equation handling, and conditional (`applies_when`) verify logic. No promises I can't
-keep.
+Alpha. A research tool, not a maintained product — **use it at your own risk.** What's solid:
+the verify engine, the offline PaperQA2 substrate, extraction with cross-checks, the version
+stamp, the typed card-builder, DeepSeek adapters, the CLI, the MCP server, and the REVIEW +
+WRITE-from-papers pillars (claim-cards, tiering, consistency, references, tracked-changes
+delivery, grounded drafting — all on the same anchored-or-flagged guarantee). What's not here
+yet: WRITE-from-code, a REST face, image-equation handling, and conditional (`applies_when`)
+verify logic. No promises I can't keep.
 
 ## Standing on shoulders
 
