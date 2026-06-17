@@ -14,6 +14,7 @@ from pathlib import Path
 from .claim import ClaimVerdict
 from .claimverify import ClaimExtractor, ClaimJudge
 from .codegen import Generator
+from .codewrite import CodeValueLocator, CodeWriter
 from .draft import Writer
 from .extract import Extractor, ReadBack
 from .speccard import SpecCard, SpecField, State
@@ -225,6 +226,38 @@ def make_writer(model: str = DEEPSEEK) -> Writer:
             "\n\nSentence:"
         )
         return _complete(system, user, model=model, max_tokens=120)
+
+    return writer
+
+
+def make_code_locator(model: str = DEEPSEEK) -> CodeValueLocator:
+    """Locate the literal value of a named aspect inside a code repo dump. Returns the bare
+    value (so codewrite can pin it verbatim) or None. WRITE-from-code's anchor is the verbatim
+    pin done in code, not this reply — so a wrong value here just fails to pin -> NO_EVIDENCE."""
+    def locate(aspect: str, code: str) -> str | None:
+        system = (
+            "Find where the named training/model aspect is set in the code and report ONLY its "
+            "literal value EXACTLY as written in the source (e.g. 8, 1e-4, Adam, z-score), or "
+            "NONE if the code does not set it. Copy the token verbatim — do not normalize."
+        )
+        user = f"Aspect: {aspect}\n\nCode:\n```\n{code}\n```\n\nLiteral value:"
+        return _clean_value(_complete(system, user, model=model, max_tokens=16))
+
+    return locate
+
+
+def make_code_writer(model: str = DEEPSEEK) -> CodeWriter:
+    """Write one Methods sentence for an aspect, grounded in the value + the code line it came
+    from. The verbatim pin is enforced by codewrite; the writer only phrases it."""
+    def writer(aspect: str, value: str, code_line: str) -> str:
+        system = (
+            "You are writing the Methods section of an ML paper. Write a SINGLE precise, formal "
+            "sentence reporting how the given aspect is configured, using the exact value. State "
+            "only what the value and code line support — add no numbers or claims beyond them. "
+            "Output ONLY the sentence."
+        )
+        user = f"Aspect: {aspect}\nValue: {value}\nCode line: {code_line}\n\nSentence:"
+        return _complete(system, user, model=model, max_tokens=80)
 
     return writer
 

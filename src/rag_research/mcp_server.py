@@ -339,6 +339,43 @@ async def draft_section_tool(
     }
 
 
+def _draft_methods(aspects: list[str], code: str, title: str) -> dict[str, object]:
+    from .codewrite import draft_methods, render_methods
+    from .llm import make_code_locator, make_code_writer
+
+    _load_keys()
+    draft = draft_methods(aspects, code, locate=make_code_locator(), write=make_code_writer())
+    return {
+        "title": title,
+        "no_evidence_count": draft.no_evidence_count(),
+        "total": len(draft.claims),
+        "markdown": render_methods(draft, title=title),
+        "claims": [c.model_dump(mode="json") for c in draft.claims],
+    }
+
+
+@mcp.tool
+def draft_methods_tool(aspects: list[str], code: str, title: str = "Methods") -> dict[str, object]:
+    """WRITE-from-code: draft a paper's Methods straight from a code repo dump.
+
+    For each aspect (batch_size, lr, augmentation, normalization, architecture, ...), locates
+    its value in the code and writes ONE Methods sentence — but only if the value is pinned
+    VERBATIM in a real code line (deterministic anchor). Aspects the code does not set come
+    back NO_EVIDENCE — visible, never invented. Returns the rendered Methods, per-aspect
+    claims with code line + line number, and a count of unsupported aspects. Needs
+    ``DEEPSEEK_API_KEY``.
+    """
+    return _draft_methods(aspects, code, title)
+
+
+@mcp.tool
+def draft_methods_from_file(
+    aspects: list[str], code_path: str, title: str = "Methods"
+) -> dict[str, object]:
+    """Like ``draft_methods_tool`` but reads the code from a file path."""
+    return _draft_methods(aspects, Path(code_path).read_text(encoding="utf-8"), title)
+
+
 @mcp.tool
 def export_docx(markdown: str, out_path: str) -> dict[str, object]:
     """Export a Markdown string to a .docx file at ``out_path`` (needs python-docx). Use for
