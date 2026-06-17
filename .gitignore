@@ -36,3 +36,4 @@ site/
 Thumbs.db
 .idea/
 .vscode/
+smoke_corpus/

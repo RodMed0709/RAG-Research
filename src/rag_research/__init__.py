@@ -63,6 +63,7 @@ from .delivery import (
     render_tracked_changes,
 )
 from .draft import (
+    NO_SUPPORT,
     DraftCard,
     DraftSection,
     DraftStatus,
@@ -140,6 +141,7 @@ __all__ = [
     "latex_tracked",
     "DraftStatus",
     "Writer",
+    "NO_SUPPORT",
     "DraftCard",
     "DraftSection",
     "draft_bullet",

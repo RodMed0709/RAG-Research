@@ -205,10 +205,12 @@ server, and all four review jobs — code↔paper check, manuscript review (clai
 consistency, references, tracked-changes corrections), anchored drafting from papers, and
 Methods↔code — every one on the same anchored-or-flagged guarantee.
 
-**Honest caveat:** the anchored-or-flagged guarantee is enforced and unit-tested at the contract
-level, but the full end-to-end run (live PaperQA2 + a real LLM over a real paper) hasn't been
-validated yet — that's the next milestone. What's not here yet either: a REST face,
-image-equation handling, and conditional (`applies_when`) logic. No promises I can't keep.
+**End-to-end check:** the anchored-or-flagged guarantee has now been run live — PaperQA2 with
+local embeddings + a real LLM over a public paper (see `examples/smoke_review_write_e2e.py`). It
+held: a false claim came back UNSUPPORTED and an unsupported drafting bullet was flagged
+NO_EVIDENCE rather than written. That run also caught and fixed a real leak (a writer turning an
+unsupported bullet into a vacuously-true "not mentioned" sentence). What's not here yet: a REST
+face, image-equation handling, and conditional (`applies_when`) logic. No promises I can't keep.
 
 ## Standing on shoulders
 

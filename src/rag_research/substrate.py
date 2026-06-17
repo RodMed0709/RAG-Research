@@ -98,6 +98,10 @@ class Substrate:
         self.settings = settings if settings is not None else self._local_settings()
         self.embedding_model = embedding_model
 
+    #: Local SentenceTransformer embedding (the ``st-`` prefix routes lmi to a local model).
+    #: Keeps retrieval fully offline — no OpenAI/embedding API key needed.
+    DEFAULT_EMBEDDING = "st-multi-qa-MiniLM-L6-cos-v1"
+
     def _local_settings(self) -> Any:
         s = self._Settings()
         # offline-friendly: no LLM-driven metadata inference, and no multimodal image
@@ -105,6 +109,9 @@ class Substrate:
         # later, human-confirmed path; text retrieval needs neither.
         s.parsing.use_doc_details = False
         s.parsing.multimodal = False
+        # Use a LOCAL embedding model. Without this, PaperQA2 defaults to an OpenAI embedding
+        # and ingest fails for users who only have a non-OpenAI LLM key (e.g. DeepSeek).
+        s.embedding = self.DEFAULT_EMBEDDING
         return s
 
     async def ingest(self, path: str, *, paper_ref: str | None = None, citation: str | None = None) -> str:

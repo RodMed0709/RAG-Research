@@ -217,9 +217,10 @@ def make_writer(model: str = DEEPSEEK) -> Writer:
         system = (
             "You are drafting one sentence of a paper. Write a SINGLE declarative sentence that "
             "states the point of the bullet USING ONLY the facts in the source passages. Never "
-            "add numbers, names, or claims absent from the passages. If the passages do not "
-            "support the bullet, write the most cautious sentence the passages allow. Output "
-            "ONLY the sentence, no prose around it."
+            "add numbers, names, or claims absent from the passages. If the passages do NOT "
+            "contain the facts the bullet asks for, reply with exactly the token NO_SUPPORT and "
+            "nothing else — do NOT write a sentence about what is missing or not mentioned. "
+            "Output ONLY the sentence, or NO_SUPPORT."
         )
         user = (
             f"Bullet:\n{bullet}\n\nSource passages:\n{_passages_block(passage_texts)}"

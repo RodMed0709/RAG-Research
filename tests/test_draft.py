@@ -81,6 +81,24 @@ def test_hallucinating_writer_downgraded():
     assert card.jumper is None
 
 
+def test_writer_no_support_sentinel_is_no_evidence():
+    # The writer says it can't ground the bullet -> NO_EVIDENCE, never judged into the prose.
+    # (Regression: a live writer turned this into a vacuously-true "not mentioned" sentence that
+    # the judge HONORED, leaking an unsupported bullet into the draft.)
+    def _write_no_support(bullet, passages):
+        return "NO_SUPPORT"
+
+    card = draft_bullet(
+        "a topic the corpus does not cover",
+        retrieve=_retrieve_with("Some unrelated evidence."),
+        write=_write_no_support,
+        judge=_judge_const(ClaimVerdict.HONORED),  # judge would HONOR, but we never reach it
+        extractor=_no_extract,
+    )
+    assert card.status == DraftStatus.NO_EVIDENCE
+    assert card.claim_text == ""
+
+
 def test_ambiguous_goes_to_human_queue():
     card = draft_bullet(
         "borderline claim",

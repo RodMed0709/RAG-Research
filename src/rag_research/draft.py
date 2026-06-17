@@ -31,7 +31,12 @@ class DraftStatus(str, Enum):
 
 # Injected writer LLM: (bullet, passage_texts) -> a single prose sentence grounded only in
 # the passages. Its output is a CANDIDATE — the verdict is decided downstream by verify_claim.
+# If the passages do not support the bullet, the writer must return NO_SUPPORT (verbatim), not a
+# meta-sentence like "the passages do not mention X": such a sentence is vacuously true and would
+# sail past the judge as HONORED, defeating the NO_EVIDENCE signal.
 Writer = Callable[[str, list[str]], str]
+
+NO_SUPPORT = "NO_SUPPORT"
 
 
 class DraftCard(BaseModel):
@@ -73,6 +78,13 @@ def draft_bullet(
         return DraftCard(bullet=bullet, claim_text="", status=DraftStatus.NO_EVIDENCE)
 
     claim_text = write(bullet, [p.verbatim_text for p in passages])
+
+    # The writer signals "I can't ground this" with NO_SUPPORT (or an empty reply). Treat that as
+    # NO_EVIDENCE up front — do NOT let it become a vacuously-true "not mentioned" sentence that
+    # the judge would HONOR.
+    stripped = claim_text.strip()
+    if not stripped or stripped.upper().startswith(NO_SUPPORT):
+        return DraftCard(bullet=bullet, claim_text="", status=DraftStatus.NO_EVIDENCE)
 
     # CITATION kind routes verify_claim to the injected judge against the retrieved passages,
     # catching a writer that strays beyond them. No value_spec needed for prose support.
